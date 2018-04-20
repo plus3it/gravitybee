@@ -22,6 +22,7 @@ programs that are already packaged in the standard setuptools
 way.
 
 These are some benefits of a GravityBee standalone application:
+
  * You end up with one file that contains everything.
  * Your user does not need to install Python or any packages.
  * You build separate natively executable applications for each of your target platforms.
