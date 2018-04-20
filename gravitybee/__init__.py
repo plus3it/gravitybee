@@ -36,7 +36,7 @@ from distlib import database
 from setuptools import config
 from distutils import errors
 
-__version__ = "0.2.3"
+__version__ = "0.1.0"
 
 class ConfigRep(object):
     """Utility for reading setup.cfg and installing dependencies.

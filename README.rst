@@ -1,3 +1,3 @@
 gravitybee
 ==========
-Generate standalone python applications
+Generate standalone python applications.
