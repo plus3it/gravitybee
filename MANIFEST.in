@@ -1,0 +1,12 @@
+graft gravitybee
+graft tests
+
+include .bumpversion.cfg
+
+include CHANGELOG.rst
+include LICENSE
+include README.rst
+
+include .travis.yml
+
+global-exclude *.py[cod] __pycache__ *.so *.dylib .git
