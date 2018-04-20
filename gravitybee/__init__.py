@@ -1,30 +1,13 @@
 # -*- coding: utf-8 -*-
 """gravitybee module.
 
-This module helps give programmatic access to the setup configuration
-of a package and allows automatic installation of required packages
-and importing of modules. This can be useful for automated
-environments.
-
-This module can be used by python scripts or through the included command-
-line interface (CLI).
-
-gravitybee, like the hobbit, is small but mighty. This module is named in
-honor of Pippin, a companion, friend, Bichon Frise-Shih Tzu mix. He
-passed away on March 30, 2018 at the age of 12 after a battle with
-diabetes, blindness, deafness, and loss of smell. Pleasant to the
-end, he was a great, great dog.
-PIPPIN: I didn't think it would end this way.
-GANDALF: End? No, the journey doesn't end here. Death is just another
-    path, one that we all must take.
+This module helps in generating standalone applications from python
+packages using PyInstaller.
 
 Example:
     Help using the gravitybee CLI can be found by typing the following::
 
         $ gravitybee --help
-
-Todo:
-    * Improve support for setup.py (support now focuses on setup.cfg)
 """
 import platform
 import sys
@@ -38,14 +21,15 @@ from distutils import errors
 
 __version__ = "0.1.0"
 
-class ConfigRep(object):
-    """Utility for reading setup.cfg and installing dependencies.
+class PackageGenerator(object):
+    """
+    Utility for generating standalone executable versions of python
+    programs that are already packaged in the standard setuptools 
+    way.
 
-    This class helps find packages that must be installed as
-    dependencies of a given package, based on a configuration file.
-    In automated environments or when using automation to create
-    standalone applications, it can be helpful to have programmatic
-    access to this information.
+    ESSENTIAL INPUT:
+    - Application name
+    - Location of application script (what's installed in bin)
 
     Attributes:
         setup_file: A str of the path of the file to process.
