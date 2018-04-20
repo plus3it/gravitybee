@@ -60,6 +60,7 @@ values. You can provide values either through environment variables or command l
 provided, command line flags take precedence.
 
 Options [ENVIRONMENT VARIABLES]:
+
 --app-name TEXT     [GB_APP_NAME] The name that will appear as part of the final standalone application name.
                     *Default: ``name`` from ``setup.py`` and/or ``setup.cfg``.*
 --pkg-name TEXT     [GB_PKG_NAME] The package name for the application you are building.
