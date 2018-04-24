@@ -14,34 +14,27 @@ click.disable_unicode_literals_warning = True
     ignore_unknown_options=True,
 ))
 @click.version_option(version=gravitybee.__version__)
-@click.option('--setup-file', '-f', 'setup_file', default='setup.cfg',
-              help='Name of the setup file to process.')
-@click.option('--platform', '-p', 'platform', default=None,
-              help='Defaults to the current machine, use this option \
-              to override (e.g., Windows or Linux).')
+@click.option('--app-name', '-a', 'app_name', default=None,
+              help='Name of the Python application.')
+@click.option('--pkg-name', '-p', 'pkg_name', default=None,
+              help='The package name for the application you are \
+              building.')
+@click.option('--script', '-s', 'script_path', default=None,
+              help='Path to Python application script.')
+@click.option('--pkg-dir', '-d', 'pkg_dir', default=None,
+              help='Source directory for the package.')
 @click.option('--verbose', '-v', 'verbose', is_flag=True,
-              help='Displays extra information about processing.')
-@click.option('--auto-load', '-a', 'auto_load', is_flag=True,
-              help='Install, if necessary, and import all required \
-              packages.')
-@click.option('--display', '-d', 'display', is_flag=True,
-              help='Display package information but do not install or \
-              import packages.')
+              help='Verbose mode.')
 
 def main(**kwargs):
     """Entry point for GravityBee CLI."""
 
     print("GravityBee CLI,", gravitybee.__version__)
 
-    # Remove unused options
-    empty_keys = [k for k,v in kwargs.items() if not v]
-    for k in empty_keys:
-        del kwargs[k]
-
     exit_val = 0
 
     # Create an instance
-    p = gravitybee.ConfigRep(**kwargs)
+    args = gravitybee.Arguments(**kwargs)
 
     if kwargs.get('display',False):
         if not (p.read_config() and p.load_config()):
