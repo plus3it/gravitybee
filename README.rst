@@ -25,8 +25,8 @@ These are some benefits of a GravityBee standalone application:
 
 * You end up with one file that contains everything.
 * Your user does not need to install Python or any packages.
-* You build separate natively executable applications for each of 
-your target platforms.
+* You build separate natively executable applications for each of
+  your target platforms.
 
 GravityBee depends on `Pyppyn <https://github.com/YakDriver/pyppyn>`_ and
 `PyInstaller <http://www.pyinstaller.org>`_ and is subject to their limitations.
@@ -37,13 +37,15 @@ To Build A Standalone Application
 Step 1 - Install
 ----------------
 
-You must install the application you wish to build (e.g., ``yoursuperapp``), as well as GravityBee.
+You must install the application you wish to build (e.g.,
+``yoursuperapp``), as well as GravityBee.
 
 .. code-block:: bash
 
     $ pip install yoursuperapp gravitybee
 
-The process will also work fine if you're installing from a local version of your app.
+The process will also work fine if you're installing from a local
+version of your app.
 
 .. code-block:: bash
 
@@ -74,8 +76,12 @@ Options [ENVIRONMENT VARIABLES]:
                     ``options.entry_points.console_scripts`` from ``setup.py`` and/or ``setup.cfg``.
                     *Default:* ``$VIRTUAL_ENV/bin/app_name``
 
---pkg-dir TEXT  [GB_PKG_DIR] The relative path of the package containing your application.
+--src-dir TEXT  [GB_SRC_DIR] The relative path of the package containing your application.
                     *Default:* ``src``
+
+--pkg-dir TEXT  [GB_PKG_DIR] The relative or absolute path of the package containing your application.
+                    This directory must contain a ``setup.py`` file.
+                    *Default:* ``.``
 
 If you are using environment variables, you could set them up like this.
 

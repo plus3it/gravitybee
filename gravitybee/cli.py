@@ -16,13 +16,16 @@ click.disable_unicode_literals_warning = True
 @click.version_option(version=gravitybee.__version__)
 @click.option('--app-name', '-a', 'app_name', default=None,
               help='Name of the Python application.')
-@click.option('--pkg-name', '-p', 'pkg_name', default=None,
+@click.option('--pkg-name', '-n', 'pkg_name', default=None,
               help='The package name for the application you are \
               building.')
 @click.option('--script', '-s', 'script_path', default=None,
               help='Path to Python application script.')
-@click.option('--pkg-dir', '-d', 'pkg_dir', default=None,
+@click.option('--src-dir', '-d', 'src_dir', default=None,
               help='Source directory for the package.')
+@click.option('--pkg-dir', '-p', 'pkg_dir', default=None,
+              help='Directory where setup.py for app lives \
+              (not for GravityBee).')
 @click.option('--verbose', '-v', 'verbose', is_flag=True,
               help='Verbose mode.')
 
