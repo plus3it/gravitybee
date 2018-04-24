@@ -61,19 +61,19 @@ provided, command line flags take precedence.
 
 Options [ENVIRONMENT VARIABLES]:
 
---app-name TEXT     [GB_APP_NAME] The name that will appear as part of the final standalone application name.
+`--app-name TEXT`   [GB_APP_NAME] The name that will appear as part of the final standalone application name.
                     *Default:* ``name`` *from setup.py and/or setup.cfg.*
 
---pkg-name TEXT     [GB_PKG_NAME] The package name for the application you are building.
+`--pkg-name TEXT`   [GB_PKG_NAME] The package name for the application you are building.
                     *Default: First value in* ``packages`` *from setup.py and/or setup.cfg, or if not
                     found, the value from --app-name.*
 
---script TEXT       [GB_SCRIPT] The path to the application file installed by ``pip`` when you installed
+`--script TEXT`     [GB_SCRIPT] The path to the application file installed by ``pip`` when you installed
                     your application. Depending on your configuration, this may be determined by
                     ``options.entry_points.console_scripts`` from ``setup.py`` and/or ``setup.cfg``.
                     *Default:* ``$VIRTUAL_ENV/bin/app_name``
 
---pkg-dir TEXT      [GB_PKG_DIR] The relative path of the package containing your application.
+`--pkg-dir TEXT`    [GB_PKG_DIR] The relative path of the package containing your application.
                     *Default:* ``src``
 
 If you are using environment variables, you could set them up like this.
