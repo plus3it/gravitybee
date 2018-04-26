@@ -82,7 +82,7 @@ Options [ENVIRONMENT VARIABLES]:
                         *Default:* ``$VIRTUAL_ENV/bin/app_name``
 
 --src-dir, -d TEXT      [GB_SRC_DIR] The relative path of the package containing your application.
-                        *Default: ``.``*
+                        *Default:* ``.``
 
 --pkg-dir, -p TEXT      [GB_PKG_DIR] The relative or absolute path of the package containing your application.
                         This directory must contain a ``setup.py`` file.
