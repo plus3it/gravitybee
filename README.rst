@@ -50,34 +50,36 @@ version of your app.
 .. code-block:: bash
 
     $ cd yoursuperapp
-    $ ls *cfg
-    setup.cfg
+    $ ls setup*
+    setup.cfg            setup.py
     $ pip install --editable .
     $ pip install gravitybee
 
 Step 2 - Provide (or gather) information
 ----------------------------------------
 
-GravityBee will assume all necessary information when run. However, you may wish to override the assumed
-values. You can provide values either through environment variables or command line flags. If both are
+GravityBee will assume all necessary information when run. However,
+you may wish to override the assumed
+values. You can provide values either through environment variables
+or command line flags. If both are
 provided, command line flags take precedence.
 
 Options [ENVIRONMENT VARIABLES]:
 
---app-name TEXT  [GB_APP_NAME] The name that will appear as part of the final standalone application name.
-                    *Default:* ``name`` *from setup.py and/or setup.cfg.*
+--app-name, -a TEXT     [GB_APP_NAME] The name that will appear as part of the final standalone application name.
+                        *Default:* ``name`` *from setup.py and/or setup.cfg.*
 
---pkg-name TEXT  [GB_PKG_NAME] The package name for the application you are building.
-                    *Default: First value in* ``packages`` *from setup.py and/or setup.cfg, or if not
-                    found, the value from --app-name.*
+--pkg-name, -n TEXT     [GB_PKG_NAME] The package name for the application you are building.
+                        *Default: First value in* ``packages`` *from setup.py and/or setup.cfg,
+                        or if not found, the value from --app-name.*
 
---script TEXT  [GB_SCRIPT] The path to the application file installed by ``pip`` when you installed
-                    your application. Depending on your configuration, this may be determined by
-                    ``options.entry_points.console_scripts`` from ``setup.py`` and/or ``setup.cfg``.
-                    *Default:* ``$VIRTUAL_ENV/bin/app_name``
+--script, -s TEXT       [GB_SCRIPT] The path to the application file installed by ``pip`` when you installed
+                        your application. Depending on your configuration, this may be determined by
+                        ``options.entry_points.console_scripts`` from ``setup.py`` and/or ``setup.cfg``.
+                        *Default:* ``$VIRTUAL_ENV/bin/app_name``
 
---src-dir TEXT  [GB_SRC_DIR] The relative path of the package containing your application.
-                    *Default: None* 
+--src-dir, -d TEXT      GB_SRC_DIR] The relative path of the package containing your application.
+                        *Default: None*
 
 --pkg-dir TEXT  [GB_PKG_DIR] The relative or absolute path of the package containing your application.
                     This directory must contain a ``setup.py`` file.
@@ -104,20 +106,47 @@ Creating the standalone application is easy now.
 
 .. code-block:: bash
 
-    $ gravitybee --generate
+    $ gravitybee
 
 If you are not using environment variables, you can combine steps 2 and 3.
 
 .. code-block:: bash
 
-    $ gravitybee --generate --app-name coolapp --script /usr/var/python/etc/coolapp --pkg-dir coolapp
+    $ gravitybee --app-name coolapp --script /usr/var/python/etc/coolapp --pkg-dir coolapp
+
+The Test Example
+----------------
+
+Here is the file/package structure of the included
+`test application <https://github.com/YakDriver/gravitybee/tree/dev/tests/gbtestapp>`_::
+
+    gbtestapp
+    |-- setup.py
+    |-- setup.cfg
+    `-- src
+    |   `-- gbtestapp
+    |       |-- __init__.py
+    |       |-- cli.py
+    |       `-- gbextradata
+    |           |-- __init__.py
+    |           `-- data_file.txt
+
+You would build the application as follows. Since the application
+package is under the ``src`` directory, you need to let GravityBee
+know. Also, since we need to include the ``data_file.txt`` file,
+we'll use the ``--extradata`` option.
+
+.. code-block:: bash
+
+    $ cd gbtestapp
+    $ gravitybee --src-dir src --extra-data gbextradata --verbose --clean
 
 
 Attribution
 ===========
 
-The idea for GravityBee's core functionality comes from `Nicholas Chammas <https://github.com/nchammas>`
-and his project `flintrock <https://github.com/nchammas/flintrock>`. Huge thanks to Nicholas!
+The idea for GravityBee's core functionality comes from `Nicholas Chammas <https://github.com/nchammas>`_
+and his project `flintrock <https://github.com/nchammas/flintrock>`_. Huge thanks to Nicholas!
 
 
 Contribute

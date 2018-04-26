@@ -96,7 +96,7 @@ class Arguments(object):
             'src_dir',
             os.environ.get(
                 'GB_SRC_DIR',
-                None))
+                '.'))
 
         self.name_format = kwargs.get(
             'name_format',
@@ -222,16 +222,18 @@ class PackageGenerator(object):
 
         # 1 extra data
         hook += "# collection extra data, if any (using --extra-data option)"
-        for data in self.args.extra_data:
-            #datas.append(('../src/watchmaker/static', './watchmaker/static'))
-            hook += "\ndatas.append(('" 
-            hook += self.args.pkg_dir + os.sep
-            if self.args.src_dir is not None:
-                hook += self.args.src_dir + os.sep
-            hook += self.args.pkg_name + os.sep + data
-            hook += "', '" + self.args.pkg_name + "/" + data + "'))"
+        try:
+            for data in self.args.extra_data:
+                #datas.append(('../src/watchmaker/static', './watchmaker/static'))
+                hook += "\ndatas.append(('" 
+                hook += self.args.pkg_dir + os.sep
+                if self.args.src_dir is not None:
+                    hook += self.args.src_dir + os.sep
+                hook += self.args.pkg_name + os.sep + data
+                hook += "', '" + self.args.pkg_name + "/" + data + "'))"
+                hook += "\n\n"
+        except:
             pass
-        hook += "\n\n"
 
         # 2 package metadata
         hook += "# add dependency metadata"
