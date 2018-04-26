@@ -274,6 +274,15 @@ class PackageGenerator(object):
         self._create_hook()
 
         # copy the python script to the current directory
+        for dirname, dirnames, filenames in os.walk(os.path.dirname(self.args.script_path)):
+            # print path to all subdirectories first.
+            for subdirname in dirnames:
+                print(os.path.join(dirname, subdirname))
+
+            # print path to all filenames.
+            for filename in filenames:
+                print(os.path.join(dirname, filename))
+
         try:
             shutil.copy2(self.args.script_path, self._temp_script)
         except FileNotFoundError:
@@ -281,10 +290,10 @@ class PackageGenerator(object):
                 gravitybee.VERB_MESSAGE_PREFIX, 
                 "ERROR: GravityBee could not find your application's " +
                 "script in the virtual env that was installed by pip. " +
-                "Possible solutions: 1. Run GravityBee in a virtual " +
-                "env; 2. Point GravityBee to the script using the " +
-                "--script option; 3. Install your application using " +
-                "pip; 3. Make sure your application has a console " +
+                "Possible solutions:\n1. Run GravityBee in a virtual " +
+                "env;\n2. Point GravityBee to the script using the " +
+                "--script option;\n3. Install your application using " +
+                "pip;\n4. Make sure your application has a console " +
                 "script entry in setup.py or setup.cfg."
             )
             self._cleanup()

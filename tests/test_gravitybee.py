@@ -32,10 +32,12 @@ def test_executable(arguments):
     if generated_okay:
         files = glob.glob('gbtestapp-4.2.6-standalone*')
 
-    cmd_output = check_output(os.path.join('.',files[0]))
-    compare_file = open(os.path.join("tests", "gbtestapp", "correct_stdout.txt"),"rb").read()
+        cmd_output = check_output(os.path.join('.',files[0]))
+        compare_file = open(os.path.join("tests", "gbtestapp", "correct_stdout.txt"),"rb").read()
 
-    assert cmd_output == compare_file
+        assert cmd_output == compare_file
+    else:
+        assert False
 
 @pytest.fixture
 def defaults():
