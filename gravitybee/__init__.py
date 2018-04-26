@@ -274,14 +274,9 @@ class PackageGenerator(object):
         self._create_hook()
 
         # copy the python script to the current directory
-        for dirname, dirnames, filenames in os.walk(os.path.dirname(self.args.script_path)):
-            # print path to all subdirectories first.
-            for subdirname in dirnames:
-                print(os.path.join(dirname, subdirname))
-
-            # print path to all filenames.
-            for filename in filenames:
-                print(os.path.join(dirname, filename))
+        for path in sys.path:
+            for afile in glob.glob(os.path.join(path, '*')):
+                os.path.join(path, afile)
 
         try:
             shutil.copy2(self.args.script_path, self._temp_script)
