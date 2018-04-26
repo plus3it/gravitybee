@@ -112,7 +112,7 @@ class Arguments(object):
         self.work_dir = kwargs.get(
             'work_dir',
             os.environ.get(
-                'GB_WORK_DIRECTORY',
+                'GB_WORK_DIR',
                 'gb_workdir_' + uuid.uuid1().hex[:16]))
 
         if os.path.exists(self.work_dir):
@@ -227,7 +227,7 @@ class PackageGenerator(object):
                 #datas.append(('../src/watchmaker/static', './watchmaker/static'))
                 hook += "\ndatas.append(('" 
                 hook += self.args.pkg_dir + os.sep
-                if self.args.src_dir is not None:
+                if self.args.src_dir != '.':
                     hook += self.args.src_dir + os.sep
                 hook += self.args.pkg_name + os.sep + data
                 hook += "', '" + self.args.pkg_name + "/" + data + "'))"

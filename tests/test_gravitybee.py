@@ -52,7 +52,7 @@ def test_pkg_dir(defaults):
     assert defaults.pkg_dir == '.'
 
 def test_src_dir(defaults):
-    assert defaults.src_dir is None
+    assert defaults.src_dir == '.'
 
 def test_name_format(defaults):
     assert defaults.name_format == '{an}-{v}-standalone-{os}-{m}'

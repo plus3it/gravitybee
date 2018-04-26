@@ -78,17 +78,26 @@ Options [ENVIRONMENT VARIABLES]:
                         ``options.entry_points.console_scripts`` from ``setup.py`` and/or ``setup.cfg``.
                         *Default:* ``$VIRTUAL_ENV/bin/app_name``
 
---src-dir, -d TEXT      GB_SRC_DIR] The relative path of the package containing your application.
+--src-dir, -d TEXT      [GB_SRC_DIR] The relative path of the package containing your application.
+                        *Default: ``.``*
+
+--pkg-dir, -p TEXT      [GB_PKG_DIR] The relative or absolute path of the package containing your application.
+                        This directory must contain a ``setup.py`` file.
+                        *Default:* ``.``
+
+--verbose, -v           Verbose mode.
+
+--extra-data, -e TEXT   [GB_EXTRA_DATA] Relative to package directory, any extra directories or files that need
+                        to be included, that wouldn't normally be included as Python code. Can be used multiple
+                        times.
                         *Default: None*
 
---pkg-dir TEXT  [GB_PKG_DIR] The relative or absolute path of the package containing your application.
-                    This directory must contain a ``setup.py`` file.
-                    *Default:* ``.``
+--work-dir, -w TEXT     [GB_WORK_DIR] Directory for use by GravityBee to build application. Cannot be an existing
+                        directory as it will be deleted if the clean option is used.
+                        *Default: * ``gb_workdir_<uuid>``
 
---extra-data TEXT  [GB_EXTRA_DATA] Relative to package directory, any extra directories or files that need
-                    to be included, that wouldn't normally be included as Python code. Can be used multiple
-                    times.
-                    *Default: None*
+--clean, -c             Whether to clean up the work directory after the build. If used, GravityBee will copy the 
+                        built standalone application to the current directory before deleting.
 
 If you are using environment variables, you could set them up like this.
 
@@ -134,7 +143,8 @@ Here is the file/package structure of the included
 You would build the application as follows. Since the application
 package is under the ``src`` directory, you need to let GravityBee
 know. Also, since we need to include the ``data_file.txt`` file,
-we'll use the ``--extradata`` option.
+we'll use the ``--extradata`` option to include the containing
+directory (``gbextradata``).
 
 .. code-block:: bash
 
