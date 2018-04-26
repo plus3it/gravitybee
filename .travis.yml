@@ -5,6 +5,7 @@ python:
 install:
   - echo $PYTHONPATH
   - pip install --editable .
+  - pip install --editable tests/gbtestapp
 script:
   - pytest
 before_deploy:

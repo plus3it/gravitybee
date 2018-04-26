@@ -274,11 +274,6 @@ class PackageGenerator(object):
 
         self._create_hook()
 
-        # copy the python script to the current directory
-        for path in sys.path:
-            for afile in glob.glob(os.path.join(path, '*')):
-                print(os.path.join(path, afile))
-
         try:
             shutil.copy2(self.args.script_path, self._temp_script)
         except FileNotFoundError:
