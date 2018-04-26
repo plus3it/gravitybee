@@ -28,7 +28,7 @@ import gravitybee
 import platform
 import shutil
 import subprocess
-import random
+import uuid
 import glob
 from string import Template
 
@@ -112,7 +112,14 @@ class Arguments(object):
             'work_dir',
             os.environ.get(
                 'GB_WORK_DIRECTORY',
-                'gravitybee'))
+                'gb_workdir_' + uuid.uuid1().hex[:16]))
+
+        if os.path.exists(self.work_dir):
+            print(
+                gravitybee.VERB_MESSAGE_PREFIX, 
+                "ERROR: work_dir must not exist. It may be deleted."
+            )
+            raise FileExistsError
 
         # arguments that DO depend on pyppyn
         gravitybee.pyppy = pyppyn.ConfigRep(setup_path=self.pkg_dir,verbose=gravitybee.verbose)
@@ -198,7 +205,7 @@ class PackageGenerator(object):
 
         self._temp_script = os.path.join(
             self.args.work_dir,
-            str(random.randint(10000,99999)) + '_' + self.args.console_script + '.py')
+            uuid.uuid1().hex[:16] + '_' + self.args.console_script + '.py')
 
         gravitybee.verboseprint("Package generator:")
         gravitybee.verboseprint("operating_system:",self.operating_system)
@@ -208,7 +215,7 @@ class PackageGenerator(object):
 
     def _create_hook(self):
         # get the hook ready
-        template = Template(open(os.path.join(self.gb_dir, "hook-template.py"), "r").read())
+        template = Template(open(os.path.join(self.gb_dir, "hook-template"), "r").read())
 
         hook = template.safe_substitute({ 'app_name': self.args.app_name })
 

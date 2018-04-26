@@ -1,0 +1,9 @@
+[gbtestapp] GravityBee Test App
+[gbtestapp] Calling method in gbextradata:
+[gbextradata] GravityBee Extra Data
+[gbextradata] SOME_CONSTANT: success
+[gbextradata] some_data: All of this 
+comes from
+the gbextradata
+file called
+data_file.txt

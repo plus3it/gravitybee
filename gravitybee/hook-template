@@ -7,4 +7,3 @@ hiddenimports = (
 
 datas = copy_metadata('$app_name')
 datas += collect_data_files('$app_name')
-
