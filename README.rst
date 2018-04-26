@@ -77,11 +77,16 @@ Options [ENVIRONMENT VARIABLES]:
                     *Default:* ``$VIRTUAL_ENV/bin/app_name``
 
 --src-dir TEXT  [GB_SRC_DIR] The relative path of the package containing your application.
-                    *Default:* ``src``
+                    *Default: None* 
 
 --pkg-dir TEXT  [GB_PKG_DIR] The relative or absolute path of the package containing your application.
                     This directory must contain a ``setup.py`` file.
                     *Default:* ``.``
+
+--extra-data TEXT  [GB_EXTRA_DATA] Relative to package directory, any extra directories or files that need
+                    to be included, that wouldn't normally be included as Python code. Can be used multiple
+                    times.
+                    *Default: None*
 
 If you are using environment variables, you could set them up like this.
 
@@ -106,6 +111,13 @@ If you are not using environment variables, you can combine steps 2 and 3.
 .. code-block:: bash
 
     $ gravitybee --generate --app-name coolapp --script /usr/var/python/etc/coolapp --pkg-dir coolapp
+
+
+Attribution
+===========
+
+The idea for GravityBee's core functionality comes from `Nicholas Chammas <https://github.com/nchammas>`
+and his project `flintrock <https://github.com/nchammas/flintrock>`. Huge thanks to Nicholas!
 
 
 Contribute

@@ -4,6 +4,18 @@
 This module helps in generating standalone applications from python
 packages using PyInstaller.
 
+The basic functionality of Gravity Bee was laid out by
+Nicholas Chammas (@nchammas) in a project called FlintRock.
+
+Attributes:
+    VERB_MESSAGE_PREFIX: A str that is displayed before verbose
+        messages.
+    verbose: A bool representing whether verbose mode is on.
+    pyppy: An instance of pyppyn.ConfigRep for gathering application
+        information.
+    verboseprint: A function that prints verbose messages if in
+        verbose mode.
+
 Example:
     Help using the gravitybee CLI can be found by typing the following::
 
@@ -16,29 +28,50 @@ import gravitybee
 import platform
 import shutil
 import subprocess
-import sys
 import random
+import glob
 from string import Template
+
+import sys # won't need if no system.exit
 
 __version__ = "0.1.0"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 
 verbose = False
 pyppy = None
-verboseprint = lambda *a: print(gravitybee.VERB_MESSAGE_PREFIX, *a) if gravitybee.verbose else lambda *a, **k: None
+verboseprint = lambda *a, **k: \
+    print(gravitybee.VERB_MESSAGE_PREFIX, *a, **k) \
+    if gravitybee.verbose else lambda *a, **k: None
 
 class Arguments(object):
     """
-    Arguments for GravityBee
-    """
+    A class representing the configuration information needed by the
+    gravitybee.PackageGenerator class.
 
-    app_name = None
-    pkg_name = None
-    script_path = None
-    pkg_dir = None
-    src_dir = None
-    console_script = None
-    app_version = None
+    Attributes:
+        clean: A bool indicating whether to clean temporary work from
+            the build when complete.
+        pkg_dir: A str with location of setup.py for the package to
+            be built into a standalone application.
+        src_dir: A str with relative path of directory with the 
+            package source code (e.g., src)
+        name_format: A str that represents the format to be used in
+            naming the standalone application.
+        extra_data: A list of str providing any extra data that
+            should be included with the standalone application.
+        work_dir: A str with a relative path of directory to be used
+            by GravityBee for work files.
+        console_script: A str of the name of the first console script
+            listed in setup.py or setup.cfg.
+        app_version: A str of the version of the standalone
+            application pulled from setup.py or setup.cfg.
+        app_name: A str with name of the application (which is not
+            the same as the file name) to be built.
+        pkg_name: A str of the name of the package containing the
+            application that will be built.
+        script_path: A str of the path the script installed by pip
+            when the application is installed.
+    """    
 
     def __init__(self, *args, **kwargs):
         """Instantiation"""
@@ -48,7 +81,40 @@ class Arguments(object):
         for k in empty_keys:
             del kwargs[k]
 
+        # arguments that do NOT depend on pyppyn
         gravitybee.verbose = kwargs.get('verbose',False)
+        self.clean = kwargs.get('clean',False)
+
+        self.pkg_dir = kwargs.get(
+            'pkg_dir',
+            os.environ.get(
+                'GB_PKG_DIR',
+                '.'))
+
+        self.src_dir = kwargs.get(
+            'src_dir',
+            os.environ.get(
+                'GB_SRC_DIR',
+                None))
+
+        self.name_format = kwargs.get(
+            'name_format',
+            os.environ.get(
+                'GB_NAME_FORMAT',
+                '{an}-{v}-standalone-{os}-{m}'))
+
+        self.extra_data = kwargs.get(
+            'extra_data',
+            None
+        )
+
+        self.work_dir = kwargs.get(
+            'work_dir',
+            os.environ.get(
+                'GB_WORK_DIRECTORY',
+                'gravitybee'))
+
+        # arguments that DO depend on pyppyn
         gravitybee.pyppy = pyppyn.ConfigRep(setup_path=self.pkg_dir,verbose=gravitybee.verbose)
 
         self.console_script = gravitybee.pyppy.get_config_attr('console_scripts')
@@ -76,55 +142,47 @@ class Arguments(object):
                     'bin',
                     self.console_script)))
 
-        self.pkg_dir = kwargs.get(
-            'pkg_dir',
-            os.environ.get(
-                'GB_PKG_DIR',
-                '.'))
+        gravitybee.verboseprint("Arguments:")
+        gravitybee.verboseprint("app_name:",self.app_name)
+        gravitybee.verboseprint("app_version:",self.app_version)
+        gravitybee.verboseprint("console_script:",self.console_script)
+        gravitybee.verboseprint("pkg_name:",self.pkg_name)
+        gravitybee.verboseprint("script_path:",self.script_path)
+        gravitybee.verboseprint("pkg_dir:",self.pkg_dir)
+        gravitybee.verboseprint("src_dir:",self.src_dir)
+        gravitybee.verboseprint("name_format:",self.name_format)
+        gravitybee.verboseprint("clean:",self.clean)
+        gravitybee.verboseprint("work_dir:",self.work_dir)
 
-        self.src_dir = kwargs.get(
-            'src_dir',
-            os.environ.get(
-                'GB_SRC_DIR',
-                'src'))
-
-        self.name_format = kwargs.get(
-            'name_format',
-            os.environ.get(
-                'GB_NAME_FORMAT',
-                '{an}-{v}-standalone-{os}-{m}'))
+        if self.extra_data is not None:
+            for extra_data in self.extra_data:
+                gravitybee.verboseprint("extra_data:",extra_data)
 
 class PackageGenerator(object):
     """
     Utility for generating standalone executable versions of python
-    programs that are already packaged in the standard setuptools 
-    way.
+    programs that are already packaged in a standard setuptools
+    package.
 
     Attributes:
-        setup_file: A str of the path of the file to process.
-        platform: A str of the platform. This is automatically
-            determined or can be overriden.
-        verbose: A bool of whether to display extra messages.
-        config_dict: A dict representing the values in the config
-            file.
-        python_version: A float with the major and minor versions of
-            the currently running python.
-        app_version: A str of the version represented by the config
-            file.
-        this_os_reqs: A list of packages required for this os/env.
-        other_reqs: A list of packages that are not required.
-            Included for debug so that it is possible to see where
-            everything went.
-        base_reqs: A list of non-specific requirements that are also
-            needed.
-        this_python_reqs: A list of packages required for this
-            version of python.
+        args: An instance of gravitybee.Arguments containing
+            the configuration information for GravityBee.
+        operating_system: A str of the os. This is automatically
+            determined.
+        machine_type: A str of the machine (e.g., x86_64)
+        standalone_name: A str that will be the name of the
+            standalone application.
+        gb_dir: A str of the GravityBee runtime package directory.
+        gb_filename: A str of the runtime filename.
     """
 
     def __init__(self, args=None):
-        
+
         self.args = args
-        self.operating_system = platform.system().lower()
+
+        pl_sys = platform.system().lower()
+        self.operating_system = pl_sys if pl_sys != 'darwin' else 'osx' 
+
         self.machine_type = platform.machine().lower()
 
         self.standalone_name = self.args.name_format.format(
@@ -133,36 +191,67 @@ class PackageGenerator(object):
             os=self.operating_system,
             m=self.machine_type)
 
-        self._temp_script = str(random.randint(10000,99999)) + '_' + self.args.console_script
+        self.gb_dir, self.gb_filename = os.path.split(__file__)
+
+        if not os.path.exists(self.args.work_dir):
+            os.makedirs(self.args.work_dir)
+
+        self._temp_script = os.path.join(
+            self.args.work_dir,
+            str(random.randint(10000,99999)) + '_' + self.args.console_script + '.py')
+
+        gravitybee.verboseprint("Package generator:")
+        gravitybee.verboseprint("operating_system:",self.operating_system)
+        gravitybee.verboseprint("machine_type:",self.machine_type)
+        gravitybee.verboseprint("standalone_name:",self.standalone_name)
+
 
     def _create_hook(self):
         # get the hook ready
-        template = Template("""from PyInstaller.utils.hooks import copy_metadata, collect_data_files, collect_submodules
-
-        hiddenimports = (
-            collect_submodules('$app_name}')
-        )
-
-        datas = copy_metadata('$app_name}')
-        datas += collect_data_files('$app_name}')
-        
-        """)
+        template = Template(open(os.path.join(self.gb_dir, "hook-template.py"), "r").read())
 
         hook = template.safe_substitute({ 'app_name': self.args.app_name })
 
         # 1 extra data
+        hook += "# collection extra data, if any (using --extra-data option)"
         for data in self.args.extra_data:
             #datas.append(('../src/watchmaker/static', './watchmaker/static'))
-            #hook += "\ndatas.append(('./" + src/watchmaker/static', './watchmaker/static'))"
+            hook += "\ndatas.append(('./"
+            if self.args.src_dir is not None:
+                hook += self.args.src_dir + "/"
+            hook += self.args.pkg_name + "/" + data
+            hook += "', './" + self.args.pkg_name + "/" + data + "'))"
             pass
+        hook += "\n\n"
 
         # 2 package metadata
+        hook += "# add dependency metadata"
         for package in gravitybee.pyppy.get_required():
             #datas += copy_metadata(pkg)
-            hook += "\ndatas += copy_metadata(" + package + ")"
+            hook += "\ndatas += copy_metadata('" + package + "')"
+        hook += "\n"
 
         # 3 write file
-        # write hook-pkg_name.py
+        self.hook_file = os.path.join(self.args.work_dir, "hook-" + self.args.pkg_name + ".py")
+        f = open(self.hook_file,"w+")
+        f.write(hook)
+        f.close()
+
+        gravitybee.verboseprint("Created hook file:",self.hook_file)
+
+    def _cleanup(self):
+        if self.args.clean:
+            gravitybee.verboseprint("Cleaning up...")
+
+            # work dir
+            # get standalone app out first if it exists
+            for standalone in glob.glob(os.path.join(self.args.work_dir, 'dist', self.standalone_name + '*')):
+                gravitybee.verboseprint("Copying standalone application to current directory:", standalone)
+                shutil.copy2(standalone, '.')
+
+            if os.path.isdir(self.args.work_dir):
+                gravitybee.verboseprint("Deleting working dir:", self.args.work_dir)
+                shutil.rmtree(self.args.work_dir)
 
     def generate(self):
         """
@@ -177,7 +266,21 @@ class PackageGenerator(object):
         self._create_hook()
 
         # copy the python script to the current directory
-        shutil.copy2(self.args.script_path, os.path.join('.',self._temp_script))
+        try:
+            shutil.copy2(self.args.script_path, self._temp_script)
+        except FileNotFoundError:
+            print(
+                gravitybee.VERB_MESSAGE_PREFIX, 
+                "ERROR: GravityBee could not find your application's " +
+                "script in the virtual env that was installed by pip. " +
+                "Possible solutions: 1. Run GravityBee in a virtual " +
+                "env; 2. Point GravityBee to the script using the " +
+                "--script option; 3. Install your application using " +
+                "pip; 3. Make sure your application has a console " +
+                "script entry in setup.py or setup.cfg."
+            )
+            self._cleanup()
+            return False
 
         commands = [
             'pyinstaller',
@@ -185,8 +288,11 @@ class PackageGenerator(object):
             #'--clean',
             '--onefile',
             '--name', self.standalone_name,
-            '--paths', self.args.src_path,
-            '--additional-hooks-dir', '.',
+            '--paths', self.args.src_dir,
+            '--additional-hooks-dir', self.args.work_dir,
+            '--specpath', self.args.work_dir,
+            '--workpath', os.path.join(self.args.work_dir, 'build'),
+            '--distpath', os.path.join(self.args.work_dir, 'dist'),
             '--hidden-import', self.args.pkg_name,
             # This hidden import is introduced by botocore.
             # We won't need this when this issue is resolved:
@@ -196,8 +302,8 @@ class PackageGenerator(object):
             # It appears to be related to this issue:
             # https://github.com/pyinstaller/pyinstaller/issues/1935
             '--hidden-import', 'configparser',
-            '--hidden-import', 'packaging',
-            '--hidden-import', 'packaging.specifiers',
+            #'--hidden-import', 'packaging', # was required by pyinstaller for a while
+            #'--hidden-import', 'packaging.specifiers', # was required by pyinstaller for a while
             '--hidden-import', 'pkg_resources',
         ]
 
@@ -221,4 +327,7 @@ class PackageGenerator(object):
         subprocess.run(
             commands,
             check=True)
+
+        self._cleanup()
+        return True
 
