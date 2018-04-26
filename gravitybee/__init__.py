@@ -277,7 +277,7 @@ class PackageGenerator(object):
         # copy the python script to the current directory
         for path in sys.path:
             for afile in glob.glob(os.path.join(path, '*')):
-                os.path.join(path, afile)
+                print(os.path.join(path, afile))
 
         try:
             shutil.copy2(self.args.script_path, self._temp_script)
