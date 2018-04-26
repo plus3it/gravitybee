@@ -37,4 +37,38 @@ def test_executable(arguments):
 
     assert cmd_output == compare_file
 
+@pytest.fixture
+def defaults():
+    if not os.getcwd().endswith(os.path.join("tests", "gbtestapp")):
+        os.chdir(os.path.join("tests", "gbtestapp"))
+    return Arguments()
 
+def test_clean(defaults):
+    assert not defaults.clean
+
+def test_pkg_dir(defaults):
+    assert defaults.pkg_dir == '.'
+
+def test_src_dir(defaults):
+    assert defaults.src_dir is None
+
+def test_name_format(defaults):
+    assert defaults.name_format == '{an}-{v}-standalone-{os}-{m}'
+
+def test_extra_data(defaults):
+    assert defaults.extra_data is None
+
+def test_work_dir(defaults):
+    assert defaults.work_dir[:11] == 'gb_workdir_'
+
+def test_console_script(defaults):
+    assert defaults.console_script == 'gbtestapp'
+
+def test_app_version(defaults):
+    assert defaults.app_version == '4.2.6'
+
+def test_app_name(defaults):
+    assert defaults.app_name == 'gbtestapp'
+
+def test_pkg_name(defaults):
+    assert defaults.pkg_name == 'gbtestapp'
