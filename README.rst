@@ -70,12 +70,15 @@ Options [ENVIRONMENT VARIABLES]:
                         *Default:* ``name`` *from setup.py and/or setup.cfg.*
 
 --pkg-name, -n TEXT     [GB_PKG_NAME] The package name for the application you are building.
-                        *Default: First value in* ``packages`` *from setup.py and/or setup.cfg,
+                        *Default: First value in* ``packages`` *from
+                        setup.py and/or setup.cfg,
                         or if not found, the value from --app-name.*
 
 --script, -s TEXT       [GB_SCRIPT] The path to the application file installed by ``pip`` when you installed
-                        your application. Depending on your configuration, this may be determined by
-                        ``options.entry_points.console_scripts`` from ``setup.py`` and/or ``setup.cfg``.
+                        your application. Depending on your
+                        configuration, this may be determined by
+                        ``options.entry_points.console_scripts`` from
+                        ``setup.py`` and/or ``setup.cfg``.
                         *Default:* ``$VIRTUAL_ENV/bin/app_name``
 
 --src-dir, -d TEXT      [GB_SRC_DIR] The relative path of the package containing your application.
@@ -88,16 +91,19 @@ Options [ENVIRONMENT VARIABLES]:
 --verbose, -v           Verbose mode.
 
 --extra-data, -e TEXT   [GB_EXTRA_DATA] Relative to package directory, any extra directories or files that need
-                        to be included, that wouldn't normally be included as Python code. Can be used multiple
+                        to be included, that wouldn't normally be
+                        included as Python code. Can be used multiple
                         times.
                         *Default: None*
 
 --work-dir, -w TEXT     [GB_WORK_DIR] Directory for use by GravityBee to build application. Cannot be an existing
-                        directory as it will be deleted if the clean option is used.
-                        *Default: * ``gb_workdir_<uuid>``
+                        directory as it will be deleted if the clean
+                        option is used.
+                        *Default:* ``gb_workdir_<uuid>``
 
---clean, -c             Whether to clean up the work directory after the build. If used, GravityBee will copy the 
-                        built standalone application to the current directory before deleting.
+--clean, -c             Whether to clean up the work directory after the build. If used, GravityBee will copy the
+                        built standalone application to the current
+                        directory before deleting.
 
 If you are using environment variables, you could set them up like this.
 
@@ -127,18 +133,20 @@ The Test Example
 ----------------
 
 Here is the file/package structure of the included
-`test application <https://github.com/YakDriver/gravitybee/tree/dev/tests/gbtestapp>`_::
+`test application <https://github.com/YakDriver/gravitybee/tree/dev/tests/gbtestapp>`_.
+
+.. code-block:: bash
 
     gbtestapp
     |-- setup.py
     |-- setup.cfg
-    `-- src
-    |   `-- gbtestapp
+    >-- src
+    |   >-- gbtestapp
     |       |-- __init__.py
     |       |-- cli.py
-    |       `-- gbextradata
+    |       >-- gbextradata
     |           |-- __init__.py
-    |           `-- data_file.txt
+    |           |-- data_file.txt
 
 You would build the application as follows. Since the application
 package is under the ``src`` directory, you need to let GravityBee
