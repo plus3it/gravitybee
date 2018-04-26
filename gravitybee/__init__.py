@@ -223,11 +223,12 @@ class PackageGenerator(object):
         hook += "# collection extra data, if any (using --extra-data option)"
         for data in self.args.extra_data:
             #datas.append(('../src/watchmaker/static', './watchmaker/static'))
-            hook += "\ndatas.append(('./"
+            hook += "\ndatas.append(('" 
+            hook += self.args.pkg_dir + os.sep
             if self.args.src_dir is not None:
-                hook += self.args.src_dir + "/"
-            hook += self.args.pkg_name + "/" + data
-            hook += "', './" + self.args.pkg_name + "/" + data + "'))"
+                hook += self.args.src_dir + os.sep
+            hook += self.args.pkg_name + os.sep + data
+            hook += "', '" + self.args.pkg_name + "/" + data + "'))"
             pass
         hook += "\n\n"
 

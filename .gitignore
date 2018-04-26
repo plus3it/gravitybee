@@ -1,3 +1,10 @@
+# gravitybee specific
+# work directories
+gb_workdir*
+# executable
+*-x86_64
+*-x86_64.exe
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -28,9 +35,6 @@ wheels/
 .installed.cfg
 *.egg
 
-# executable
-*-x86_64
-*-x86_64.exe
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
