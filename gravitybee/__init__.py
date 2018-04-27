@@ -258,11 +258,7 @@ class PackageGenerator(object):
     def _cleanup(self):
         # set self.created_file ad self.created_path even if not deleting
         for standalone in glob.glob(os.path.join(self.args.work_dir, 'dist', self.standalone_name + '*')):
-            self.created_path = os.path.join(
-                os.getcwd(), 
-                self.args.work_dir, 
-                'dist', 
-                standalone)
+            self.created_path = standalone
             self.created_file = os.path.basename(self.created_path)
             gravitybee.verboseprint("Filename:", self.created_file)
 
@@ -271,8 +267,11 @@ class PackageGenerator(object):
 
             # clean work dir
             # get standalone app out first if it exists
-            gravitybee.verboseprint("Moving standalone application to current directory:", os.getcwd())
-            shutil.move(self.created_path, '.')
+            gravitybee.verboseprint("Moving standalone application to current directory:")
+            if os.path.exists(os.path.join(os.getcwd(), self.created_file)):
+                gravitybee.verboseprint("File already exists, removing...")
+                os.remove(os.path.join(os.getcwd(), self.created_file))
+            shutil.move(self.created_path, os.getcwd())
 
             # new path for app now it's been copied
             self.created_path = os.path.join(os.getcwd(), self.created_file)
