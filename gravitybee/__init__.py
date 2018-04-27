@@ -35,7 +35,7 @@ from string import Template
 
 import sys # won't need if no system.exit
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 
 verbose = False
