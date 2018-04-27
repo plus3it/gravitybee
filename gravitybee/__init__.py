@@ -35,7 +35,7 @@ from string import Template
 
 import sys # won't need if no system.exit
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 
 verbose = False
@@ -54,7 +54,7 @@ class Arguments(object):
             the build when complete.
         pkg_dir: A str with location of setup.py for the package to
             be built into a standalone application.
-        src_dir: A str with relative path of directory with the 
+        src_dir: A str with relative path of directory with the
             package source code (e.g., src)
         name_format: A str that represents the format to be used in
             naming the standalone application.
@@ -72,7 +72,11 @@ class Arguments(object):
             application that will be built.
         script_path: A str of the path the script installed by pip
             when the application is installed.
-    """    
+        created_file: A str with name of file of the standalone
+            application created.
+        created_path: A str with absolute path and name of file of
+            the standalone application created.
+    """
 
     def __init__(self, *args, **kwargs):
         """Instantiation"""
@@ -83,6 +87,7 @@ class Arguments(object):
             del kwargs[k]
 
         # arguments that do NOT depend on pyppyn
+        self.created_file = None    # not set until file is created
         gravitybee.verbose = kwargs.get('verbose',False)
         self.clean = kwargs.get('clean',False)
 
@@ -117,7 +122,7 @@ class Arguments(object):
 
         if os.path.exists(self.work_dir):
             print(
-                gravitybee.VERB_MESSAGE_PREFIX, 
+                gravitybee.VERB_MESSAGE_PREFIX,
                 "ERROR: work_dir must not exist. It may be deleted."
             )
             raise FileExistsError
@@ -189,7 +194,7 @@ class PackageGenerator(object):
         self.args = args
 
         pl_sys = platform.system().lower()
-        self.operating_system = pl_sys if pl_sys != 'darwin' else 'osx' 
+        self.operating_system = pl_sys if pl_sys != 'darwin' else 'osx'
 
         self.machine_type = platform.machine().lower()
 
@@ -225,7 +230,7 @@ class PackageGenerator(object):
         try:
             for data in self.args.extra_data:
                 #datas.append(('../src/watchmaker/static', './watchmaker/static'))
-                hook += "\ndatas.append(('" 
+                hook += "\ndatas.append(('"
                 hook += self.args.pkg_dir + os.sep
                 if self.args.src_dir != '.':
                     hook += self.args.src_dir + os.sep
@@ -251,18 +256,31 @@ class PackageGenerator(object):
         gravitybee.verboseprint("Created hook file:",self.hook_file)
 
     def _cleanup(self):
+        # set self.created_file ad self.created_path even if not deleting
+        for standalone in glob.glob(os.path.join(self.args.work_dir, 'dist', self.standalone_name + '*')):
+            self.created_path = standalone
+            self.created_file = os.path.basename(self.created_path)
+            gravitybee.verboseprint("Filename:", self.created_file)
+
         if self.args.clean:
             gravitybee.verboseprint("Cleaning up...")
 
-            # work dir
+            # clean work dir
             # get standalone app out first if it exists
-            for standalone in glob.glob(os.path.join(self.args.work_dir, 'dist', self.standalone_name + '*')):
-                gravitybee.verboseprint("Copying standalone application to current directory:", standalone)
-                shutil.copy2(standalone, '.')
+            gravitybee.verboseprint("Moving standalone application to current directory:")
+            if os.path.exists(os.path.join(os.getcwd(), self.created_file)):
+                gravitybee.verboseprint("File already exists, removing...")
+                os.remove(os.path.join(os.getcwd(), self.created_file))
+            shutil.move(self.created_path, os.getcwd())
+
+            # new path for app now it's been copied
+            self.created_path = os.path.join(os.getcwd(), self.created_file)
 
             if os.path.isdir(self.args.work_dir):
                 gravitybee.verboseprint("Deleting working dir:", self.args.work_dir)
                 shutil.rmtree(self.args.work_dir)
+
+        gravitybee.verboseprint("Absolute path of standalone:", self.created_path)
 
     def generate(self):
         """
@@ -280,7 +298,7 @@ class PackageGenerator(object):
             shutil.copy2(self.args.script_path, self._temp_script)
         except FileNotFoundError:
             print(
-                gravitybee.VERB_MESSAGE_PREFIX, 
+                gravitybee.VERB_MESSAGE_PREFIX,
                 "ERROR: GravityBee could not find your application's " +
                 "script in the virtual env that was installed by pip. " +
                 "Possible solutions:\n1. Run GravityBee in a virtual " +

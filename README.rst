@@ -105,6 +105,12 @@ Options [ENVIRONMENT VARIABLES]:
                         built standalone application to the current
                         directory before deleting.
 
+--name-format, -f TEXT  [GB_NAME_FORMAT] Format to be used in naming the standalone application. Must include
+                        {an}, {v}, {os}, {m}
+                        for app name, version, os, and machine
+                        type respectively.
+                        *Default:* ``{an}-{v}-standalone-{os}-{m}``
+
 If you are using environment variables, you could set them up like this.
 
 .. code-block:: bash
@@ -158,6 +164,31 @@ directory (``gbextradata``).
 
     $ cd gbtestapp
     $ gravitybee --src-dir src --extra-data gbextradata --verbose --clean
+
+
+From Python Example
+-------------------
+
+Using GravityBee from a Python script is also possible. Using the
+sample test app, here's some example code.
+
+.. code-block:: python
+
+    import gravitybee
+
+    args = gravitybee.Arguments(
+        src_dir="src",
+        extra_data=["gbextradata"],
+        verbose=True,
+        pkg_dir=os.path.join("tests", "gbtestapp"),
+        clean=True
+    )
+
+    pg = gravitybee.PackageGenerator(args)
+    pg.generate()
+
+    # show path (and name) of standalone app
+    print("The standalone app: ", pg.created_path)
 
 
 Attribution
