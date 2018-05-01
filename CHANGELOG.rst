@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+0.1.5 - 2018.05.01
+------------------
+* [ENHANCEMENT] Add mime-type and label to .json formatted file
+  information stored in gravitybee.file
+
 0.1.3 - 2018.05.01
 ------------------
 * [ENHANCEMENT] Create gravitybee.file with name of standalone
