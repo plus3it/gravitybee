@@ -35,7 +35,7 @@ from string import Template
 
 import sys # won't need if no system.exit
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 
 verbose = False
@@ -112,6 +112,11 @@ class Arguments(object):
         self.extra_data = kwargs.get(
             'extra_data',
             None
+        )
+
+        self.dont_write_file = kwargs.get(
+            'no_file',
+            False
         )
 
         self.work_dir = kwargs.get(
@@ -280,18 +285,14 @@ class PackageGenerator(object):
                 gravitybee.verboseprint("Deleting working dir:", self.args.work_dir)
                 shutil.rmtree(self.args.work_dir)
 
-        gravitybee.verboseprint("Absolute path of standalone:", self.created_path)
+        gravitybee.verboseprint("Path of standalone:", self.created_path)
+
+        if not self.args.dont_write_file:
+            name_of_standalone_file = open('gravitybee.file','w')
+            name_of_standalone_file.write(self.created_path)
+            name_of_standalone_file.close()
 
     def generate(self):
-        """
-        if self.operating_system.lower() == 'linux':
-            src_path = '/var/opt/git/watchmaker/src'
-            additional_hooks = '/var/opt/git/gravitybee/pyinstaller'
-        elif self.operating_system.lower() == 'windows':
-            src_path = 'C:\\git\\watchmaker\\src'
-            additional_hooks = 'C:\\git\\gravitybee\\pyinstaller'
-        """
-
         self._create_hook()
 
         try:

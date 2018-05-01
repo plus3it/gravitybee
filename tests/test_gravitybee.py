@@ -39,6 +39,19 @@ def test_executable(arguments):
     else:
         assert False
 
+def test_filename_file(arguments):
+    """ Tests whether GravityBee writes name of standalone app in gravitybee.file. """
+    pg = PackageGenerator(arguments)
+    generated_okay = pg.generate()
+    if generated_okay:
+        sa_file = open("gravitybee.file", "r")
+        name = sa_file.read()
+        sa_file.close
+
+        assert os.path.basename(name).startswith("gbtestapp-4.2.6-standalone")
+    else:
+        assert False
+
 @pytest.fixture
 def defaults():
     if not os.getcwd().endswith(os.path.join("tests", "gbtestapp")):

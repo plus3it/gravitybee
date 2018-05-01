@@ -64,52 +64,64 @@ values. You can provide values either through environment variables
 or command line flags. If both are
 provided, command line flags take precedence.
 
-Options [ENVIRONMENT VARIABLES]:
+Options:
 
---app-name, -a TEXT     [GB_APP_NAME] The name that will appear as part of the final standalone application name.
-                        *Default:* ``name`` *from setup.py and/or setup.cfg.*
+================  ==================    ==========================================
+ENV VAR           CL Options            Desciption
+================  ==================    ==========================================
+GB_APP_NAME       --app-name, -a        The name that will appear as part of the
+                                        final standalone application name.
+                                        *Default:* ``name`` *from setup.py and/or
+                                        setup.cfg.*
+GB_PKG_NAME       --pkg-name, -n        The package name for the application you are
+                                        building.
+                                        *Default: First value in* ``packages`` *from
+                                        setup.py and/or setup.cfg,
+                                        or if not found, the value from --app-name.*
+GB_SCRIPT         --script, -s          The path to the application file installed by
+                                        ``pip`` when you installed
+                                        your application. Depending on your
+                                        configuration, this may be determined by
+                                        ``options.entry_points.console_scripts`` from
+                                        ``setup.py`` and/or ``setup.cfg``.
+                                        *Default:* ``$VIRTUAL_ENV/bin/app_name``
+GB_SRC_DIR        --src-dir, -d         The relative path of the package containing
+                                        your application.
+                                        *Default:* ``.``
+GB_PKG_DIR        --pkg-dir, -p         The relative or absolute path of the package
+                                        containing your application.
+                                        This directory must contain a ``setup.py`` file.
+                                        *Default:* ``.``
+(None)            --verbose, -v         Verbose mode.
+GB_EXTRA_DATA     --extra-data, -e      Relative to package directory, any extra
+                                        directories or files that need
+                                        to be included, that wouldn't normally be
+                                        included as Python code. Can be used multiple
+                                        times.
+                                        *Default: None*
+GB_WORK_DIR       --work-dir, -w        Directory for use by GravityBee to build
+                                        application. Cannot be an existing
+                                        directory as it will be deleted if the clean
+                                        option is used.
+                                        *Default:* ``gb_workdir_<uuid>``
+(None)            --clean, -c           Whether to clean up the work directory after
+                                        the build. If used, GravityBee will copy the
+                                        built standalone application to the current
+                                        directory before deleting.
+                                        *Default: Not*
+GB_NAME_FORMAT    --name-format, -f     Format to be used in naming the standalone
+                                        application. Must include
+                                        {an}, {v}, {os}, {m}
+                                        for app name, version, os, and machine
+                                        type respectively.
+                                        *Default:* ``{an}-{v}-standalone-{os}-{m}``
+(None)            --no-file             Do not write ``gravitybee.file`` file with
+                                        name of standalone. *Default: Will write
+                                        file*
+================  ==================    ==========================================
 
---pkg-name, -n TEXT     [GB_PKG_NAME] The package name for the application you are building.
-                        *Default: First value in* ``packages`` *from
-                        setup.py and/or setup.cfg,
-                        or if not found, the value from --app-name.*
 
---script, -s TEXT       [GB_SCRIPT] The path to the application file installed by ``pip`` when you installed
-                        your application. Depending on your
-                        configuration, this may be determined by
-                        ``options.entry_points.console_scripts`` from
-                        ``setup.py`` and/or ``setup.cfg``.
-                        *Default:* ``$VIRTUAL_ENV/bin/app_name``
 
---src-dir, -d TEXT      [GB_SRC_DIR] The relative path of the package containing your application.
-                        *Default:* ``.``
-
---pkg-dir, -p TEXT      [GB_PKG_DIR] The relative or absolute path of the package containing your application.
-                        This directory must contain a ``setup.py`` file.
-                        *Default:* ``.``
-
---verbose, -v           Verbose mode.
-
---extra-data, -e TEXT   [GB_EXTRA_DATA] Relative to package directory, any extra directories or files that need
-                        to be included, that wouldn't normally be
-                        included as Python code. Can be used multiple
-                        times.
-                        *Default: None*
-
---work-dir, -w TEXT     [GB_WORK_DIR] Directory for use by GravityBee to build application. Cannot be an existing
-                        directory as it will be deleted if the clean
-                        option is used.
-                        *Default:* ``gb_workdir_<uuid>``
-
---clean, -c             Whether to clean up the work directory after the build. If used, GravityBee will copy the
-                        built standalone application to the current
-                        directory before deleting.
-
---name-format, -f TEXT  [GB_NAME_FORMAT] Format to be used in naming the standalone application. Must include
-                        {an}, {v}, {os}, {m}
-                        for app name, version, os, and machine
-                        type respectively.
-                        *Default:* ``{an}-{v}-standalone-{os}-{m}``
 
 If you are using environment variables, you could set them up like this.
 

@@ -38,7 +38,9 @@ click.disable_unicode_literals_warning = True
               directory where GravityBee is run. Otherwise, it is placed in the work_dir.')    
 @click.option('--name-format', '-f', 'name_format', default=None,
               help='Format to be used in naming the standalone application. Must include {an}, {v}, {os}, {m} \
-              for app name, version, os, and machine type respectively.')          
+              for app name, version, os, and machine type respectively.') 
+@click.option('--no-file', 'no_file', is_flag=True, default=False,
+              help='Do not write gravitybee.file file with name of standalone.')                           
 
 def main(**kwargs):
     """Entry point for GravityBee CLI."""
