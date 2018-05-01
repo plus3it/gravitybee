@@ -1,6 +1,7 @@
 # gravitybee specific
 # work directories
 gb_workdir*
+gravitybee.file
 # executable
 *-x86_64
 *-x86_64.exe
