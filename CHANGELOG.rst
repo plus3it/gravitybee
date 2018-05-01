@@ -3,7 +3,7 @@ CHANGE LOG
 
 0.1.3 - 2018.05.01
 ------------------
-* [ENHANCEMENT] Create gravitybee.file with name of standalone 
+* [ENHANCEMENT] Create gravitybee.file with name of standalone
   application
 
 0.1.2 - 2018.04.27
