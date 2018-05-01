@@ -64,7 +64,7 @@ values. You can provide values either through environment variables
 or command line flags. If both are
 provided, command line flags take precedence.
 
-Options [ENVIRONMENT VARIABLES]:
+Options:
 
 ================  ==================    ==========================================
 ENV VAR           CL Options            Desciption
