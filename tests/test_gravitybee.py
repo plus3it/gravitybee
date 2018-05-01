@@ -3,6 +3,7 @@
 import pytest
 import glob
 import os
+import json
 
 from subprocess import check_output
 
@@ -45,10 +46,10 @@ def test_filename_file(arguments):
     generated_okay = pg.generate()
     if generated_okay:
         sa_file = open("gravitybee.file", "r")
-        name = sa_file.read()
+        gb_files = json.loads(sa_file.read())
         sa_file.close
 
-        assert os.path.basename(name).startswith("gbtestapp-4.2.6-standalone")
+        assert gb_files['filename'].startswith("gbtestapp-4.2.6-standalone")
     else:
         assert False
 
