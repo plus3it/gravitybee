@@ -49,7 +49,7 @@ def test_filename_file(arguments):
         gb_files = json.loads(sa_file.read())
         sa_file.close
 
-        assert gb_files['filename'].startswith("gbtestapp-4.2.6-standalone")
+        assert gb_files[0]['filename'].startswith("gbtestapp-4.2.6-standalone")
     else:
         assert False
 

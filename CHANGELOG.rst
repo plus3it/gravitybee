@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+0.1.6 - 2018.05.03
+------------------
+* [ENHANCEMENT] Follow format prescribed by satsuki for output
+  file (potential for multiple files)
+
 0.1.5 - 2018.05.01
 ------------------
 * [ENHANCEMENT] Add mime-type and label to .json formatted file
