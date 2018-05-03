@@ -289,18 +289,23 @@ class PackageGenerator(object):
         gravitybee.verboseprint("Path of standalone:", self.created_path)
 
         if not self.args.dont_write_file:
-            gb_files = {}
-            gb_files['filename'] = self.created_file
-            gb_files['path'] = self.created_path
+            # create memory structure
+            gb_files = []
+            gb_file = {}
+            gb_file['filename'] = self.created_file
+            gb_file['path'] = self.created_path
             if self.created_file.endswith(".exe"):
-                gb_files['mime-type'] = 'application/vnd.microsoft.portable-executable'
+                gb_file['mime-type'] = 'application/vnd.microsoft.portable-executable'
             else:
-                gb_files['mime-type'] = 'application/x-executable'
-            gb_files['label'] = \
+                gb_file['mime-type'] = 'application/x-executable'
+            gb_file['label'] = \
                 self.args.app_name \
                 + " Standalone Executable (" \
                 + self.created_file \
                 + ") [GravityBee Build]"
+            gb_files.append(gb_file)
+
+            # write to disk
             file_file = open('gravitybee.file','w')
             file_file.write(json.dumps(gb_files))
             file_file.close()
