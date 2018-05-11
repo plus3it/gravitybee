@@ -38,6 +38,7 @@ import sys # won't need if no system.exit
 
 __version__ = "0.1.6"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
+EXIT_OKAY = 0
 
 verbose = False
 pyppy = None
@@ -376,5 +377,5 @@ class PackageGenerator(object):
             check=True)
 
         self._cleanup()
-        return True
+        return gravitybee.EXIT_OKAY
 
