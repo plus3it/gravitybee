@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+0.1.7 - 2018.05.11
+------------------
+* [BUG FIX] Fix exit code (was returning True)
+
 0.1.6 - 2018.05.03
 ------------------
 * [ENHANCEMENT] Follow format prescribed by satsuki for output
