@@ -41,11 +41,11 @@ def test_executable(arguments):
         assert False
 
 def test_filename_file(arguments):
-    """ Tests whether GravityBee writes name of standalone app in gravitybee.file. """
+    """ Tests whether GravityBee writes name of standalone app in gravitybee-files.json. """
     pg = PackageGenerator(arguments)
     generated_okay = pg.generate()
     if generated_okay == EXIT_OKAY:
-        sa_file = open("gravitybee.file", "r")
+        sa_file = open("gravitybee-files.json", "r")
         gb_files = json.loads(sa_file.read())
         sa_file.close
 

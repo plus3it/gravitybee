@@ -36,7 +36,7 @@ from string import Template
 
 import sys # won't need if no system.exit
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
 
@@ -377,7 +377,7 @@ class PackageGenerator(object):
             gb_files.append(gb_file)
 
             # write to disk
-            file_file = open('gravitybee.file','w')
+            file_file = open('gravitybee-files.json','w')
             file_file.write(json.dumps(gb_files))
             file_file.close()
 
@@ -442,9 +442,20 @@ class PackageGenerator(object):
         gravitybee.verboseprint("PyInstaller commands:")
         gravitybee.verboseprint(*commands, sep=', ')
 
-        subprocess.run(
+        subproc_args = {}
+        subproc_args['check'] = True
+
+        if not gravitybee.verbose:
+            subproc_args['stdout'] = subprocess.PIPE
+            subproc_args['stderr'] = subprocess.PIPE
+
+        result = subprocess.run(
             commands,
-            check=True)
+            **subproc_args
+        )
+
+        # when not verbose, stdout is available here: result.stdout
+        # when not verbose, stderr is available here: result.stderr
 
         self._cleanup()
         return gravitybee.EXIT_OKAY
