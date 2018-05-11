@@ -7,7 +7,7 @@ import json
 
 from subprocess import check_output
 
-from gravitybee import Arguments, PackageGenerator
+from gravitybee import Arguments, PackageGenerator, EXIT_OKAY
 
 @pytest.fixture
 def arguments():
@@ -24,13 +24,13 @@ def test_generation(arguments):
     pg = PackageGenerator(arguments)
     generated_okay = pg.generate()
 
-    assert generated_okay
+    assert generated_okay == EXIT_OKAY
 
 def test_executable(arguments):
     """ Tests running the executable. """
     pg = PackageGenerator(arguments)
     generated_okay = pg.generate()
-    if generated_okay:
+    if generated_okay == EXIT_OKAY:
         files = glob.glob('gbtestapp-4.2.6-standalone*')
 
         cmd_output = check_output(os.path.join('.',files[0]))
@@ -44,7 +44,7 @@ def test_filename_file(arguments):
     """ Tests whether GravityBee writes name of standalone app in gravitybee.file. """
     pg = PackageGenerator(arguments)
     generated_okay = pg.generate()
-    if generated_okay:
+    if generated_okay == EXIT_OKAY:
         sa_file = open("gravitybee.file", "r")
         gb_files = json.loads(sa_file.read())
         sa_file.close
