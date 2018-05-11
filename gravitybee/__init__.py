@@ -442,9 +442,20 @@ class PackageGenerator(object):
         gravitybee.verboseprint("PyInstaller commands:")
         gravitybee.verboseprint(*commands, sep=', ')
 
-        subprocess.run(
+        subproc_args = {}
+        subproc_args['check'] = True
+
+        if not gravitybee.verbose:
+            subproc_args['stdout'] = subprocess.PIPE
+            subproc_args['stderr'] = subprocess.PIPE
+
+        result = subprocess.run(
             commands,
-            check=True)
+            **subproc_args
+        )
+
+        # when not verbose, stdout is available here: result.stdout
+        # when not verbose, stderr is available here: result.stderr
 
         self._cleanup()
         return gravitybee.EXIT_OKAY
