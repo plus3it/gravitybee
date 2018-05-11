@@ -97,19 +97,25 @@ class Arguments(object):
             'pkg_dir',
             os.environ.get(
                 'GB_PKG_DIR',
-                '.'))
+                '.'
+            )
+        )
 
         self.src_dir = kwargs.get(
             'src_dir',
             os.environ.get(
                 'GB_SRC_DIR',
-                '.'))
+                '.'
+            )
+        )
 
         self.name_format = kwargs.get(
             'name_format',
             os.environ.get(
                 'GB_NAME_FORMAT',
-                '{an}-{v}-standalone-{os}-{m}'))
+                '{an}-{v}-standalone-{os}-{m}'
+            )
+        )
 
         self.extra_data = kwargs.get(
             'extra_data',
@@ -125,7 +131,9 @@ class Arguments(object):
             'work_dir',
             os.environ.get(
                 'GB_WORK_DIR',
-                'gb_workdir_' + uuid.uuid1().hex[:16]))
+                'gb_workdir_' + uuid.uuid1().hex[:16]
+            )
+        )
 
         if os.path.exists(self.work_dir):
             print(
@@ -145,22 +153,25 @@ class Arguments(object):
             'app_name',
             os.environ.get(
                 'GB_APP_NAME',
-                gravitybee.pyppy.app_name))
+                gravitybee.pyppy.app_name
+            )
+        )
 
         self.pkg_name = kwargs.get(
             'pkg_name',
             os.environ.get(
                 'GB_PKG_NAME',
-                gravitybee.pyppy.get_config_attr('packages')))
+                gravitybee.pyppy.get_config_attr('packages')
+            )
+        )
 
         self.script_path = kwargs.get(
             'script_path',
             os.environ.get(
                 'GB_SCRIPT',
-                os.path.join(
-                    os.environ.get('VIRTUAL_ENV'),
-                    'bin',
-                    self.console_script)))
+                self._find_script()
+            )
+        )
 
         gravitybee.verboseprint("Arguments:")
         gravitybee.verboseprint("app_name:",self.app_name)
@@ -177,6 +188,65 @@ class Arguments(object):
         if self.extra_data is not None:
             for extra_data in self.extra_data:
                 gravitybee.verboseprint("extra_data:",extra_data)
+
+    def _find_script(self):
+
+        # Windows example: C:\venv\Scripts\<console-script>-script.py
+
+        possible_paths = []
+
+        # likely posix
+        possible_paths.append(os.path.join(
+            os.environ.get('VIRTUAL_ENV'),
+            'bin',
+            self.console_script
+        ))
+
+        # likely windows
+        possible_paths.append(os.path.join(
+            os.environ.get('VIRTUAL_ENV'),
+            'Scripts',
+            self.console_script + '-script.py'
+        ))
+
+        # other windows
+        possible_paths.append(os.path.join(
+            os.environ.get('VIRTUAL_ENV'),
+            'Scripts',
+            self.console_script + '.py'
+        ))
+
+        # unlikely posix
+        possible_paths.append(os.path.join(
+            os.environ.get('VIRTUAL_ENV'),
+            'bin',
+            self.console_script + '-script.py'
+        ))
+
+        # without virtual env dir
+        possible_paths.append(os.path.join(
+            'bin',
+            self.console_script
+        ))
+
+        possible_paths.append(os.path.join(
+            'bin',
+            self.console_script + '-script.py'
+        ))
+
+        possible_paths.append(os.path.join(
+            'Scripts',
+            self.console_script + '-script.py'
+        ))
+        
+        possible_paths.append(os.path.join(
+            'Scripts',
+            self.console_script
+        ))
+
+        for path in possible_paths:
+            if os.path.exists(path):
+                return path
 
 class PackageGenerator(object):
     """
