@@ -377,7 +377,7 @@ class PackageGenerator(object):
             gb_files.append(gb_file)
 
             # write to disk
-            file_file = open('gravitybee.file','w')
+            file_file = open('gravitybee-files.json','w')
             file_file.write(json.dumps(gb_files))
             file_file.close()
 

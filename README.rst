@@ -115,7 +115,7 @@ GB_NAME_FORMAT    --name-format, -f     Format to be used in naming the standalo
                                         for app name, version, os, and machine
                                         type respectively.
                                         *Default:* ``{an}-{v}-standalone-{os}-{m}``
-(None)            --no-file             Do not write ``gravitybee.file`` file with
+(None)            --no-file             Do not write ``gravitybee-files.json`` file with
                                         name of standalone. *Default: Will write
                                         file*
 ================  ==================    ==========================================

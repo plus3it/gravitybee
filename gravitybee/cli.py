@@ -40,7 +40,7 @@ click.disable_unicode_literals_warning = True
               help='Format to be used in naming the standalone application. Must include {an}, {v}, {os}, {m} \
               for app name, version, os, and machine type respectively.') 
 @click.option('--no-file', 'no_file', is_flag=True, default=False,
-              help='Do not write gravitybee.file file with name of standalone.')                           
+              help='Do not write gravitybee-files.json file with name of standalone.')                           
 
 def main(**kwargs):
     """Entry point for GravityBee CLI."""
