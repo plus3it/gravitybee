@@ -36,7 +36,7 @@ from string import Template
 
 import sys # won't need if no system.exit
 
-__version__ = "0.1.8"
+__version__ = "0.1.9"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
 
@@ -74,10 +74,6 @@ class Arguments(object):
             application that will be built.
         script_path: A str of the path the script installed by pip
             when the application is installed.
-        created_file: A str with name of file of the standalone
-            application created.
-        created_path: A str with absolute path and name of file of
-            the standalone application created.
     """
 
     def __init__(self, *args, **kwargs):
@@ -89,7 +85,6 @@ class Arguments(object):
             del kwargs[k]
 
         # arguments that do NOT depend on pyppyn
-        self.created_file = None    # not set until file is created
         gravitybee.verbose = kwargs.get('verbose',False)
         self.clean = kwargs.get('clean',False)
 
@@ -264,11 +259,18 @@ class PackageGenerator(object):
             standalone application.
         gb_dir: A str of the GravityBee runtime package directory.
         gb_filename: A str of the runtime filename.
+        created_file: A str with name of file of the standalone
+            application created.
+        created_path: A str with absolute path and name of file of
+            the standalone application created.        
     """
 
     def __init__(self, args=None):
 
         self.args = args
+
+        self.created_file = None    # not set until file is created
+        self.created_path = None    # not set until file is created
 
         pl_sys = platform.system().lower()
         self.operating_system = pl_sys if pl_sys != 'darwin' else 'osx'
@@ -359,6 +361,8 @@ class PackageGenerator(object):
 
         gravitybee.verboseprint("Path of standalone:", self.created_path)
 
+    def _write_info_files(self):
+
         if not self.args.dont_write_file:
             # create memory structure
             gb_files = []
@@ -380,6 +384,30 @@ class PackageGenerator(object):
             file_file = open('gravitybee-files.json','w')
             file_file.write(json.dumps(gb_files))
             file_file.close()
+
+            # write all the general info about run for consumption
+            # by other apps
+            gb_info = {}
+            gb_info['app_name'] = self.args.app_name
+            gb_info['app_version'] = self.args.app_version
+            gb_info['console_script'] = self.args.console_script
+            gb_info['script_path'] = self.args.script_path
+            gb_info['pkg_dir'] = self.args.pkg_dir
+            gb_info['src_dir'] = self.args.src_dir
+            gb_info['name_format'] = self.args.name_format
+            gb_info['clean'] = self.args.clean
+            gb_info['work_dir'] = self.args.work_dir
+            gb_info['created_file'] = self.created_file
+            gb_info['created_path'] = self.created_path
+            gb_info['extra_data'] = []
+
+            if self.args.extra_data is not None:
+                for extra_data in self.args.extra_data:
+                    gb_info['extra_data'].append(extra_data)
+            
+            info_file = open('gravitybee-info.json','w')
+            info_file.write(json.dumps(gb_info))
+            info_file.close()
 
     def generate(self):
         self._create_hook()
@@ -458,5 +486,6 @@ class PackageGenerator(object):
         # when not verbose, stderr is available here: result.stderr
 
         self._cleanup()
+        self._write_info_files()
         return gravitybee.EXIT_OKAY
 
