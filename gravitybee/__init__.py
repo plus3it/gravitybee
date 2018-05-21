@@ -409,6 +409,34 @@ class PackageGenerator(object):
             info_file.write(json.dumps(gb_info))
             info_file.close()
 
+            del gb_info['extra_data']
+
+            shell = open(
+                "gravitybee-environs.sh", 
+                mode = 'w',
+                encoding = 'utf-8'
+            )
+            for k, v in gb_info.items():
+                shell.write("export ")
+                shell.write("GB_" + k.upper())
+                shell.write('="')
+                shell.write(str(v))
+                shell.write('"\n')
+            shell.close()
+
+            bat = open(
+                "gravitybee-environs.bat", 
+                mode = 'w',
+                encoding = 'cp1252'
+            )
+            for k, v in gb_info.items():
+                bat.write("set ")
+                bat.write("GB_" + k.upper())
+                bat.write("=")
+                bat.write(str(v))
+                bat.write("\r\n")
+            bat.close()
+
     def generate(self):
         self._create_hook()
 
