@@ -1,6 +1,17 @@
 CHANGE LOG
 ==========
 
+0.1.10 - 2018.05.21
+-------------------
+* [ENHANCEMENT] Provide two additional output files for importing
+  GravityBee information into the environment on POSIX and Windows
+  platforms.
+
+0.1.9 - 2018.05.14
+------------------
+* [ENHANCEMENT] Output file with run info in json format for easy
+  consumption by other tools.
+
 0.1.8 - 2018.05.11
 ------------------
 * [ENHANCEMENT] In non-verbose mode, allow for supressing stdout and
