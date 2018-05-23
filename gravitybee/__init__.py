@@ -33,6 +33,7 @@ import uuid
 import glob
 import json
 from string import Template
+import hashlib
 
 import sys # won't need if no system.exit
 
@@ -45,6 +46,7 @@ pyppy = None
 verboseprint = lambda *a, **k: \
     print(gravitybee.VERB_MESSAGE_PREFIX, *a, **k) \
     if gravitybee.verbose else lambda *a, **k: None
+
 
 class Arguments(object):
     """
@@ -75,6 +77,9 @@ class Arguments(object):
         script_path: A str of the path the script installed by pip
             when the application is installed.
     """
+
+    OPTION_SHA_INFO = "info"
+    OPTION_SHA_FILE = "file"    
 
     def __init__(self, *args, **kwargs):
         """Instantiation"""
@@ -120,6 +125,11 @@ class Arguments(object):
         self.dont_write_file = kwargs.get(
             'no_file',
             False
+        )
+
+        self.sha = kwargs.get(
+            'sha',
+            Arguments.OPTION_SHA_INFO
         )
 
         self.work_dir = kwargs.get(
@@ -179,6 +189,7 @@ class Arguments(object):
         gravitybee.verboseprint("name_format:",self.name_format)
         gravitybee.verboseprint("clean:",self.clean)
         gravitybee.verboseprint("work_dir:",self.work_dir)
+        gravitybee.verboseprint("sha:",self.sha)
 
         if self.extra_data is not None:
             for extra_data in self.extra_data:
@@ -264,6 +275,25 @@ class PackageGenerator(object):
         created_path: A str with absolute path and name of file of
             the standalone application created.        
     """
+
+    @classmethod
+    def get_hash(cls, filename):
+        """
+        Finds a SHA256 for the given file.
+
+        Args:
+            filename: A str representing a file.
+        """
+
+        if os.path.exists(filename):
+            sha256 = hashlib.sha256()
+            with open(filename, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    sha256.update(chunk)
+            return sha256.hexdigest()
+        else:
+            return None
+
 
     def __init__(self, args=None):
 
@@ -364,26 +394,6 @@ class PackageGenerator(object):
     def _write_info_files(self):
 
         if not self.args.dont_write_file:
-            # create memory structure
-            gb_files = []
-            gb_file = {}
-            gb_file['filename'] = self.created_file
-            gb_file['path'] = self.created_path
-            if self.created_file.endswith(".exe"):
-                gb_file['mime-type'] = 'application/vnd.microsoft.portable-executable'
-            else:
-                gb_file['mime-type'] = 'application/x-executable'
-            gb_file['label'] = \
-                self.args.app_name \
-                + " Standalone Executable (" \
-                + self.created_file \
-                + ") [GravityBee Build]"
-            gb_files.append(gb_file)
-
-            # write to disk
-            file_file = open('gravitybee-files.json','w')
-            file_file.write(json.dumps(gb_files))
-            file_file.close()
 
             # write all the general info about run for consumption
             # by other apps
@@ -399,6 +409,7 @@ class PackageGenerator(object):
             gb_info['work_dir'] = self.args.work_dir
             gb_info['created_file'] = self.created_file
             gb_info['created_path'] = self.created_path
+            gb_info['file_sha'] = PackageGenerator.get_hash(self.created_path)
             gb_info['extra_data'] = []
 
             if self.args.extra_data is not None:
@@ -408,6 +419,40 @@ class PackageGenerator(object):
             info_file = open('gravitybee-info.json','w')
             info_file.write(json.dumps(gb_info))
             info_file.close()
+
+            # create memory structure
+            gb_files = []
+            gb_file = {}
+            gb_file['filename'] = self.created_file
+            gb_file['path'] = self.created_path
+            if self.created_file.endswith(".exe"):
+                gb_file['mime-type'] = 'application/vnd.microsoft.portable-executable'
+            else:
+                gb_file['mime-type'] = 'application/x-executable'
+            gb_file['label'] = \
+                self.args.app_name \
+                + " Standalone Executable (" \
+                + self.created_file \
+                + ") [GravityBee Build]"
+            gb_files.append(gb_file)
+            
+            if self.args.sha == Arguments.OPTION_SHA_FILE:
+                sha_file = {}
+                sha_file['filename'] = "{an}-{v}-sha256.json".format(
+                    an=self.args.app_name,
+                    v=self.args.app_version
+                )
+                sha_file['path'] = sha_file['filename']
+                sha_file['mime-type'] = 'application/json'
+                sha_file['label'] = \
+                    "SHA256 Hash for " \
+                    + self.created_file
+                gb_files.append(sha_file)
+
+            # write to disk
+            file_file = open('gravitybee-files.json','w')
+            file_file.write(json.dumps(gb_files))
+            file_file.close()
 
             del gb_info['extra_data']
 

@@ -93,7 +93,7 @@ GB_PKG_DIR        --pkg-dir, -p         The relative or absolute path of the pac
                                         containing your application.
                                         This directory must contain a ``setup.py`` file.
                                         *Default:* ``.``
-(None)            --verbose, -v         Verbose mode.
+GB_VERBOSE        --verbose, -v         Verbose mode.
 GB_EXTRA_DATA     --extra-data, -e      Relative to package directory, any extra
                                         directories or files that need
                                         to be included, that wouldn't normally be
@@ -105,7 +105,7 @@ GB_WORK_DIR       --work-dir, -w        Directory for use by GravityBee to build
                                         directory as it will be deleted if the clean
                                         option is used.
                                         *Default:* ``gb_workdir_<uuid>``
-(None)            --clean, -c           Whether to clean up the work directory after
+GB_CLEAN          --clean, -c           Whether to clean up the work directory after
                                         the build. If used, GravityBee will copy the
                                         built standalone application to the current
                                         directory before deleting.
@@ -116,9 +116,16 @@ GB_NAME_FORMAT    --name-format, -f     Format to be used in naming the standalo
                                         for app name, version, os, and machine
                                         type respectively.
                                         *Default:* ``{an}-{v}-standalone-{os}-{m}``
-(None)            --no-file             Do not write the output files (see below).
+GB_NO_FILE        --no-file             Do not write the output files (see below).
                                         *Default: Will write
                                         files*
+GB_SHA            --sha                 Where to put SHA256
+                                        hash for generated file.
+                                        Valid options are ``file``
+                                        (create a separate file with
+                                        hash), or ``info`` (only
+                                        include the hash in the file
+                                        info output). *Default:* ``info``
 ================  ==================    ==========================================
 
 
