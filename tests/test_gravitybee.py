@@ -9,6 +9,63 @@ from subprocess import check_output
 
 from gravitybee import Arguments, PackageGenerator, EXIT_OKAY
 
+# should be first so that other tests haven't created files
+def test_no_output():
+    """Makes sure that when no output flag is on, no files are created."""
+    args = Arguments(
+        src_dir="src",
+        extra_data=["gbextradata"],
+        verbose=True,
+        pkg_dir=os.path.join("tests", "gbtestapp"),
+        clean=True,
+        no_file=True
+    )
+    pg = PackageGenerator(args)
+    generated_okay = pg.generate()
+
+    sha_filename = PackageGenerator.SHA_FILENAME.format(
+        an=pg.args.app_name,
+        v=pg.args.app_version
+    )
+
+    assert generated_okay == EXIT_OKAY \
+        and not os.path.exists(PackageGenerator.INFO_FILE) \
+        and not os.path.exists(PackageGenerator.FILES_FILE) \
+        and not os.path.exists(PackageGenerator.ENVIRON_SCRIPT \
+            + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT) \
+        and not os.path.exists(PackageGenerator.ENVIRON_SCRIPT \
+            + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT) \
+        and not os.path.exists(sha_filename)
+
+# should be second so there are still not output files
+def test_no_output_but_sha():
+    """Makes sure that when no output flag is on, no files are created."""
+    args = Arguments(
+        src_dir="src",
+        extra_data=["gbextradata"],
+        verbose=True,
+        pkg_dir=os.path.join("tests", "gbtestapp"),
+        sha=Arguments.OPTION_SHA_FILE,
+        clean=True,
+        no_file=True
+    )
+    pg = PackageGenerator(args)
+    generated_okay = pg.generate()
+
+    sha_filename = PackageGenerator.SHA_FILENAME.format(
+        an=pg.args.app_name,
+        v=pg.args.app_version
+    )
+
+    assert generated_okay == EXIT_OKAY \
+        and not os.path.exists(PackageGenerator.INFO_FILE) \
+        and not os.path.exists(PackageGenerator.FILES_FILE) \
+        and not os.path.exists(PackageGenerator.ENVIRON_SCRIPT \
+            + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT) \
+        and not os.path.exists(PackageGenerator.ENVIRON_SCRIPT \
+            + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT) \
+        and os.path.exists(sha_filename) # should be created even if no_file flag
+
 @pytest.fixture
 def arguments():
     """Returns an Arguments instance using the included app"""

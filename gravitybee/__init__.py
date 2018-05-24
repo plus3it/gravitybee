@@ -403,7 +403,8 @@ class PackageGenerator(object):
 
     def _write_info_files(self):
 
-        if not self.args.dont_write_file:
+        if not self.args.dont_write_file or \
+            self.args.sha == Arguments.OPTION_SHA_FILE:
 
             # write all the general info about run for consumption
             # by other apps
@@ -426,10 +427,11 @@ class PackageGenerator(object):
                 for extra_data in self.args.extra_data:
                     gb_info['extra_data'].append(extra_data)
             
-            gravitybee.verboseprint("Writing infomation file:", PackageGenerator.INFO_FILE)
-            info_file = open(PackageGenerator.INFO_FILE,'w')
-            info_file.write(json.dumps(gb_info))
-            info_file.close()
+            if not self.args.dont_write_file:
+                gravitybee.verboseprint("Writing infomation file:", PackageGenerator.INFO_FILE)
+                info_file = open(PackageGenerator.INFO_FILE,'w')
+                info_file.write(json.dumps(gb_info))
+                info_file.close()
 
             # create memory structure
             gb_files = []
@@ -469,50 +471,51 @@ class PackageGenerator(object):
                 sha_file.write(json.dumps(sha_dict))
                 sha_file.close()
 
-            # write to disk
-            gravitybee.verboseprint(
-                "Writing files file:", 
-                PackageGenerator.FILES_FILE
-            )
-            file_file = open(PackageGenerator.FILES_FILE, 'w')
-            file_file.write(json.dumps(gb_files))
-            file_file.close()
+            if not self.args.dont_write_file:
+                # write to disk
+                gravitybee.verboseprint(
+                    "Writing files file:", 
+                    PackageGenerator.FILES_FILE
+                )
+                file_file = open(PackageGenerator.FILES_FILE, 'w')
+                file_file.write(json.dumps(gb_files))
+                file_file.close()
 
-            del gb_info['extra_data']
+                del gb_info['extra_data']
 
-            gravitybee.verboseprint(
-                "Writing environ script:",
-                PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
-            )
-            shell = open(
-                PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT,
-                mode = 'w',
-                encoding = PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE
-            )
-            for k, v in gb_info.items():
-                shell.write("export ")
-                shell.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
-                shell.write('="')
-                shell.write(str(v))
-                shell.write('"\n')
-            shell.close()
+                gravitybee.verboseprint(
+                    "Writing environ script:",
+                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
+                )
+                shell = open(
+                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT,
+                    mode = 'w',
+                    encoding = PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE
+                )
+                for k, v in gb_info.items():
+                    shell.write("export ")
+                    shell.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
+                    shell.write('="')
+                    shell.write(str(v))
+                    shell.write('"\n')
+                shell.close()
 
-            gravitybee.verboseprint(
-                "Writing environ script:",
-                PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
-            )
-            bat = open(
-                PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT,
-                mode = 'w',
-                encoding = PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE
-            )
-            for k, v in gb_info.items():
-                bat.write("set ")
-                bat.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
-                bat.write("=")
-                bat.write(str(v))
-                bat.write("\r\n")
-            bat.close()
+                gravitybee.verboseprint(
+                    "Writing environ script:",
+                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
+                )
+                bat = open(
+                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT,
+                    mode = 'w',
+                    encoding = PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE
+                )
+                for k, v in gb_info.items():
+                    bat.write("set ")
+                    bat.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
+                    bat.write("=")
+                    bat.write(str(v))
+                    bat.write("\r\n")
+                bat.close()
 
     def generate(self):
         self._create_hook()

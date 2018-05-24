@@ -117,6 +117,10 @@ GB_NAME_FORMAT    --name-format, -f     Format to be used in naming the standalo
                                         type respectively.
                                         *Default:* ``{an}-{v}-standalone-{os}-{m}``
 GB_NO_FILE        --no-file             Do not write the output files (see below).
+                                        If the ``--sha`` flag is used to
+                                        write a
+                                        hash to a file, that file will still be
+                                        written regardless.
                                         *Default: Will write
                                         files*
 GB_SHA            --sha                 Where to put SHA256
