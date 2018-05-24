@@ -33,10 +33,11 @@ import uuid
 import glob
 import json
 from string import Template
+import hashlib
 
 import sys # won't need if no system.exit
 
-__version__ = "0.1.10"
+__version__ = "0.1.11"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
 
@@ -45,6 +46,7 @@ pyppy = None
 verboseprint = lambda *a, **k: \
     print(gravitybee.VERB_MESSAGE_PREFIX, *a, **k) \
     if gravitybee.verbose else lambda *a, **k: None
+
 
 class Arguments(object):
     """
@@ -75,6 +77,9 @@ class Arguments(object):
         script_path: A str of the path the script installed by pip
             when the application is installed.
     """
+
+    OPTION_SHA_INFO = "info"
+    OPTION_SHA_FILE = "file"    
 
     def __init__(self, *args, **kwargs):
         """Instantiation"""
@@ -120,6 +125,11 @@ class Arguments(object):
         self.dont_write_file = kwargs.get(
             'no_file',
             False
+        )
+
+        self.sha = kwargs.get(
+            'sha',
+            Arguments.OPTION_SHA_INFO
         )
 
         self.work_dir = kwargs.get(
@@ -179,6 +189,7 @@ class Arguments(object):
         gravitybee.verboseprint("name_format:",self.name_format)
         gravitybee.verboseprint("clean:",self.clean)
         gravitybee.verboseprint("work_dir:",self.work_dir)
+        gravitybee.verboseprint("sha:",self.sha)
 
         if self.extra_data is not None:
             for extra_data in self.extra_data:
@@ -264,6 +275,35 @@ class PackageGenerator(object):
         created_path: A str with absolute path and name of file of
             the standalone application created.        
     """
+
+    ENVIRON_PREFIX = 'GB_ENV_'
+    INFO_FILE = 'gravitybee-info.json'
+    FILES_FILE = 'gravitybee-files.json'
+    ENVIRON_SCRIPT = 'gravitybee-environs'
+    ENVIRON_SCRIPT_POSIX_EXT = '.sh' 
+    ENVIRON_SCRIPT_WIN_EXT = '.bat' 
+    ENVIRON_SCRIPT_POSIX_ENCODE = 'utf-8'
+    ENVIRON_SCRIPT_WIN_ENCODE = 'cp1252'
+    SHA_FILENAME = '{an}-{v}-sha256.json'
+
+    @classmethod
+    def get_hash(cls, filename):
+        """
+        Finds a SHA256 for the given file.
+
+        Args:
+            filename: A str representing a file.
+        """
+
+        if os.path.exists(filename):
+            sha256 = hashlib.sha256()
+            with open(filename, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    sha256.update(chunk)
+            return sha256.hexdigest()
+        else:
+            return None
+
 
     def __init__(self, args=None):
 
@@ -363,27 +403,8 @@ class PackageGenerator(object):
 
     def _write_info_files(self):
 
-        if not self.args.dont_write_file:
-            # create memory structure
-            gb_files = []
-            gb_file = {}
-            gb_file['filename'] = self.created_file
-            gb_file['path'] = self.created_path
-            if self.created_file.endswith(".exe"):
-                gb_file['mime-type'] = 'application/vnd.microsoft.portable-executable'
-            else:
-                gb_file['mime-type'] = 'application/x-executable'
-            gb_file['label'] = \
-                self.args.app_name \
-                + " Standalone Executable (" \
-                + self.created_file \
-                + ") [GravityBee Build]"
-            gb_files.append(gb_file)
-
-            # write to disk
-            file_file = open('gravitybee-files.json','w')
-            file_file.write(json.dumps(gb_files))
-            file_file.close()
+        if not self.args.dont_write_file or \
+            self.args.sha == Arguments.OPTION_SHA_FILE:
 
             # write all the general info about run for consumption
             # by other apps
@@ -399,43 +420,102 @@ class PackageGenerator(object):
             gb_info['work_dir'] = self.args.work_dir
             gb_info['created_file'] = self.created_file
             gb_info['created_path'] = self.created_path
+            gb_info['file_sha'] = PackageGenerator.get_hash(self.created_path)
             gb_info['extra_data'] = []
 
             if self.args.extra_data is not None:
                 for extra_data in self.args.extra_data:
                     gb_info['extra_data'].append(extra_data)
             
-            info_file = open('gravitybee-info.json','w')
-            info_file.write(json.dumps(gb_info))
-            info_file.close()
+            if not self.args.dont_write_file:
+                gravitybee.verboseprint("Writing infomation file:", PackageGenerator.INFO_FILE)
+                info_file = open(PackageGenerator.INFO_FILE,'w')
+                info_file.write(json.dumps(gb_info))
+                info_file.close()
 
-            del gb_info['extra_data']
+            # create memory structure
+            gb_files = []
+            gb_file = {}
+            gb_file['filename'] = self.created_file
+            gb_file['path'] = self.created_path
+            if self.created_file.endswith(".exe"):
+                gb_file['mime-type'] = 'application/vnd.microsoft.portable-executable'
+            else:
+                gb_file['mime-type'] = 'application/x-executable'
+            gb_file['label'] = \
+                self.args.app_name \
+                + " Standalone Executable (" \
+                + self.created_file \
+                + ") [GravityBee Build]"
+            gb_files.append(gb_file)
+            
+            if self.args.sha == Arguments.OPTION_SHA_FILE:
 
-            shell = open(
-                "gravitybee-environs.sh", 
-                mode = 'w',
-                encoding = 'utf-8'
-            )
-            for k, v in gb_info.items():
-                shell.write("export ")
-                shell.write("GB_" + k.upper())
-                shell.write('="')
-                shell.write(str(v))
-                shell.write('"\n')
-            shell.close()
+                sha_file_info = {}
+                sha_file_info['filename'] = PackageGenerator.SHA_FILENAME.format(
+                    an=self.args.app_name,
+                    v=self.args.app_version
+                )
+                sha_file_info['path'] = sha_file_info['filename']
+                sha_file_info['mime-type'] = 'application/json'
+                sha_file_info['label'] = \
+                    "SHA256 Hash for " \
+                    + self.created_file
+                gb_files.append(sha_file_info)
 
-            bat = open(
-                "gravitybee-environs.bat", 
-                mode = 'w',
-                encoding = 'cp1252'
-            )
-            for k, v in gb_info.items():
-                bat.write("set ")
-                bat.write("GB_" + k.upper())
-                bat.write("=")
-                bat.write(str(v))
-                bat.write("\r\n")
-            bat.close()
+                sha_dict = {}
+                sha_dict[self.created_file] = gb_info['file_sha']
+
+                gravitybee.verboseprint("Writing SHA256 file:", sha_file_info['filename'])
+                sha_file = open(sha_file_info['filename'], 'w')
+                sha_file.write(json.dumps(sha_dict))
+                sha_file.close()
+
+            if not self.args.dont_write_file:
+                # write to disk
+                gravitybee.verboseprint(
+                    "Writing files file:", 
+                    PackageGenerator.FILES_FILE
+                )
+                file_file = open(PackageGenerator.FILES_FILE, 'w')
+                file_file.write(json.dumps(gb_files))
+                file_file.close()
+
+                del gb_info['extra_data']
+
+                gravitybee.verboseprint(
+                    "Writing environ script:",
+                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
+                )
+                shell = open(
+                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT,
+                    mode = 'w',
+                    encoding = PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE
+                )
+                for k, v in gb_info.items():
+                    shell.write("export ")
+                    shell.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
+                    shell.write('="')
+                    shell.write(str(v))
+                    shell.write('"\n')
+                shell.close()
+
+                gravitybee.verboseprint(
+                    "Writing environ script:",
+                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
+                )
+                bat = open(
+                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT,
+                    mode = 'w',
+                    encoding = PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE
+                )
+                for k, v in gb_info.items():
+                    bat.write("set ")
+                    bat.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
+                    bat.write("=")
+                    bat.write(str(v))
+                    bat.write("\r\n")
+                bat.close()
 
     def generate(self):
         self._create_hook()

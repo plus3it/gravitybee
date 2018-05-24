@@ -1,6 +1,19 @@
 CHANGE LOG
 ==========
 
+0.1.11 - 2018.05.24
+-------------------
+* [ENHANCEMENT] Create a SHA256 hash for the generated standalone
+  file and include hash with file information and optionally in
+  a separate file (using --sha flag).
+* [ENHANCEMENT] Change names of environment variables produced
+  with output scripts to be prefixed with GB_ENV so that the
+  environs do not collide with environs consumed by GravityBee.
+* [ENHANCEMENT] Provide a convenience cleanup Bash script to
+  remove GravityBee output files (e.g., json and generated
+  executables).
+* [ENHANCEMENT] Cleanup code with more constants.
+
 0.1.10 - 2018.05.21
 -------------------
 * [ENHANCEMENT] Provide two additional output files for importing
