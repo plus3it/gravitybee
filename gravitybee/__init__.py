@@ -276,6 +276,16 @@ class PackageGenerator(object):
             the standalone application created.        
     """
 
+    ENVIRON_PREFIX = 'GB_ENV_'
+    INFO_FILE = 'gravitybee-info.json'
+    FILES_FILE = 'gravitybee-files.json'
+    ENVIRON_SCRIPT = 'gravitybee-environs'
+    ENVIRON_SCRIPT_POSIX_EXT = '.sh' 
+    ENVIRON_SCRIPT_WIN_EXT = '.bat' 
+    ENVIRON_SCRIPT_POSIX_ENCODE = 'utf-8'
+    ENVIRON_SCRIPT_WIN_ENCODE = 'cp1252'
+    SHA_FILENAME = '{an}-{v}-sha256.json'
+
     @classmethod
     def get_hash(cls, filename):
         """
@@ -416,7 +426,8 @@ class PackageGenerator(object):
                 for extra_data in self.args.extra_data:
                     gb_info['extra_data'].append(extra_data)
             
-            info_file = open('gravitybee-info.json','w')
+            gravitybee.verboseprint("Writing infomation file:", PackageGenerator.INFO_FILE)
+            info_file = open(PackageGenerator.INFO_FILE,'w')
             info_file.write(json.dumps(gb_info))
             info_file.close()
 
@@ -437,46 +448,67 @@ class PackageGenerator(object):
             gb_files.append(gb_file)
             
             if self.args.sha == Arguments.OPTION_SHA_FILE:
-                sha_file = {}
-                sha_file['filename'] = "{an}-{v}-sha256.json".format(
+
+                sha_file_info = {}
+                sha_file_info['filename'] = PackageGenerator.SHA_FILENAME.format(
                     an=self.args.app_name,
                     v=self.args.app_version
                 )
-                sha_file['path'] = sha_file['filename']
-                sha_file['mime-type'] = 'application/json'
-                sha_file['label'] = \
+                sha_file_info['path'] = sha_file_info['filename']
+                sha_file_info['mime-type'] = 'application/json'
+                sha_file_info['label'] = \
                     "SHA256 Hash for " \
                     + self.created_file
-                gb_files.append(sha_file)
+                gb_files.append(sha_file_info)
+
+                sha_dict = {}
+                sha_dict[self.created_file] = gb_info['file_sha']
+
+                gravitybee.verboseprint("Writing SHA256 file:", sha_file_info['filename'])
+                sha_file = open(sha_file_info['filename'], 'w')
+                sha_file.write(json.dumps(sha_dict))
+                sha_file.close()
 
             # write to disk
-            file_file = open('gravitybee-files.json','w')
+            gravitybee.verboseprint(
+                "Writing files file:", 
+                PackageGenerator.FILES_FILE
+            )
+            file_file = open(PackageGenerator.FILES_FILE, 'w')
             file_file.write(json.dumps(gb_files))
             file_file.close()
 
             del gb_info['extra_data']
 
+            gravitybee.verboseprint(
+                "Writing environ script:",
+                PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
+            )
             shell = open(
-                "gravitybee-environs.sh", 
+                PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT,
                 mode = 'w',
-                encoding = 'utf-8'
+                encoding = PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE
             )
             for k, v in gb_info.items():
                 shell.write("export ")
-                shell.write("GB_" + k.upper())
+                shell.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
                 shell.write('="')
                 shell.write(str(v))
                 shell.write('"\n')
             shell.close()
 
+            gravitybee.verboseprint(
+                "Writing environ script:",
+                PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
+            )
             bat = open(
-                "gravitybee-environs.bat", 
+                PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT,
                 mode = 'w',
-                encoding = 'cp1252'
+                encoding = PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE
             )
             for k, v in gb_info.items():
                 bat.write("set ")
-                bat.write("GB_" + k.upper())
+                bat.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
                 bat.write("=")
                 bat.write(str(v))
                 bat.write("\r\n")

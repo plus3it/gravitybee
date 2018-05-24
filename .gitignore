@@ -6,6 +6,7 @@ gravitybee*json
 *-x86_64
 *-x86_64.exe
 gravitybee-environs*
+gbtestapp*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

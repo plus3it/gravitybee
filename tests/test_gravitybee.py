@@ -17,7 +17,9 @@ def arguments():
         extra_data=["gbextradata"],
         verbose=True,
         pkg_dir=os.path.join("tests", "gbtestapp"),
-        clean=True)
+        sha=Arguments.OPTION_SHA_FILE,
+        clean=True
+    )
 
 def test_generation(arguments):
     """ Tests running the executable. """
@@ -52,6 +54,37 @@ def test_filename_file(arguments):
         assert gb_files[0]['filename'].startswith("gbtestapp-4.2.6-standalone")
     else:
         assert False
+
+def test_file_sha(arguments):
+    """
+    Checks the generated sha hash written to file with one that is
+    freshly calculated. Also checks that info file exists and has the
+    correct app name and version.
+    """
+
+    # get the sha256 hash from the json file    
+    pg = PackageGenerator(arguments)
+    generated_okay = pg.generate()
+    if generated_okay == EXIT_OKAY:
+        # get the info from info file
+        info_file = open(PackageGenerator.INFO_FILE, "r")
+        info = json.loads(info_file.read())
+        info_file.close()
+
+        sha_filename = PackageGenerator.SHA_FILENAME.format(
+            an=info['app_name'],
+            v=info['app_version']
+        )
+        sha_file = open(sha_filename, "r")
+        sha_dict = json.loads(sha_file.read())
+        sha_file.close()
+
+        assert info['file_sha'] \
+            == PackageGenerator.get_hash(info['created_path']) \
+            == sha_dict[info['created_file']]
+    else:
+        assert False
+
 
 @pytest.fixture
 def defaults():

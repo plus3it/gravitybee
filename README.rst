@@ -176,11 +176,11 @@ files. These include:
   POSIX platforms
   to create environment variables with GravityBee information. Each
   is prefixed
-  with ``GB_``.
+  with ``GB_ENV_``.
 * **gravitybee-environs.bat**: A batch file that can be used to
   create environment variables with GravityBee information on
   Windows. Each
-  environ is prefixed with ``GB_``.
+  environ is prefixed with ``GB_ENV_``.
 
 
 The Test Example
