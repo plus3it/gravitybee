@@ -1,6 +1,13 @@
 CHANGE LOG
 ==========
 
+0.1.12 - 2018.05.29
+-------------------
+* [ENHANCEMENT] Add OS and machine type to the SHA256 hash file (to
+  avoid overwriting files if files from different platforms go to the
+  same location).
+* [ENHANCEMENT] Cleanup code with better variable names.
+
 0.1.11 - 2018.05.24
 -------------------
 * [ENHANCEMENT] Create a SHA256 hash for the generated standalone

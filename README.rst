@@ -175,7 +175,7 @@ files. These include:
   ``console_script``,
   ``script_path``, ``pkg_dir``, ``src_dir``, ``name_format``,
   ``clean``, ``work_dir``,
-  ``created_file``, ``created_path``, and ``extra_data``.
+  ``gen_file``, ``gen_file_w_path``, and ``extra_data``.
 * **gravitybee-environs.sh**: A shell file that can be sourced on
   POSIX platforms
   to create environment variables with GravityBee information. Each
@@ -240,7 +240,7 @@ sample test app, here's some example code.
     pg.generate()
 
     # show path (and name) of standalone app
-    print("The standalone app: ", pg.created_path)
+    print("The standalone app: ", pg.gen_file_w_path)
 
 
 Attribution
