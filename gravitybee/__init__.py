@@ -37,7 +37,7 @@ import hashlib
 
 import sys # won't need if no system.exit
 
-__version__ = "0.1.11"
+__version__ = "0.1.12"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
 
