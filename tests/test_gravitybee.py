@@ -25,7 +25,9 @@ def test_no_output():
 
     sha_filename = PackageGenerator.SHA_FILENAME.format(
         an=pg.args.app_name,
-        v=pg.args.app_version
+        v=pg.args.app_version,
+        os=pg.args.operating_system,
+        m=pg.args.machine_type
     )
 
     assert generated_okay == EXIT_OKAY \
@@ -54,7 +56,9 @@ def test_no_output_but_sha():
 
     sha_filename = PackageGenerator.SHA_FILENAME.format(
         an=pg.args.app_name,
-        v=pg.args.app_version
+        v=pg.args.app_version,
+        os=pg.args.operating_system,
+        m=pg.args.machine_type        
     )
 
     assert generated_okay == EXIT_OKAY \
@@ -130,15 +134,17 @@ def test_file_sha(arguments):
 
         sha_filename = PackageGenerator.SHA_FILENAME.format(
             an=info['app_name'],
-            v=info['app_version']
+            v=info['app_version'],
+            os=info['operating_system'],
+            m=info['machine_type']          
         )
         sha_file = open(sha_filename, "r")
         sha_dict = json.loads(sha_file.read())
         sha_file.close()
 
         assert info['file_sha'] \
-            == PackageGenerator.get_hash(info['created_path']) \
-            == sha_dict[info['created_file']]
+            == PackageGenerator.get_hash(info['gen_file_w_path']) \
+            == sha_dict[info['gen_file']]
     else:
         assert False
 
