@@ -9,6 +9,11 @@ read -n 1 -s -r -p "Press any key to continue"
 
 echo
 
+rm -rf gravitybee/__pycache__
+
+rm -rf gb_workdir_*
+rm -rf gravitybee.egg-info
+
 rm gravitybee-environs*
 rm gravitybee-*json
 rm gbtestapp-4.2.6*

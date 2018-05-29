@@ -37,7 +37,7 @@ import hashlib
 
 import sys # won't need if no system.exit
 
-__version__ = "0.1.11"
+__version__ = "0.1.12"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
 
@@ -178,9 +178,16 @@ class Arguments(object):
             )
         )
 
+        pl_sys = platform.system().lower()
+        self.operating_system = pl_sys if pl_sys != 'darwin' else 'osx'
+
+        self.machine_type = platform.machine().lower()        
+
         gravitybee.verboseprint("Arguments:")
         gravitybee.verboseprint("app_name:",self.app_name)
         gravitybee.verboseprint("app_version:",self.app_version)
+        gravitybee.verboseprint("operating_system:",self.operating_system)
+        gravitybee.verboseprint("machine_type:",self.machine_type)
         gravitybee.verboseprint("console_script:",self.console_script)
         gravitybee.verboseprint("pkg_name:",self.pkg_name)
         gravitybee.verboseprint("script_path:",self.script_path)
@@ -270,9 +277,9 @@ class PackageGenerator(object):
             standalone application.
         gb_dir: A str of the GravityBee runtime package directory.
         gb_filename: A str of the runtime filename.
-        created_file: A str with name of file of the standalone
+        gen_file: A str with name of file of the standalone
             application created.
-        created_path: A str with absolute path and name of file of
+        gen_file_w_path: A str with absolute path and name of file of
             the standalone application created.        
     """
 
@@ -284,7 +291,7 @@ class PackageGenerator(object):
     ENVIRON_SCRIPT_WIN_EXT = '.bat' 
     ENVIRON_SCRIPT_POSIX_ENCODE = 'utf-8'
     ENVIRON_SCRIPT_WIN_ENCODE = 'cp1252'
-    SHA_FILENAME = '{an}-{v}-sha256.json'
+    SHA_FILENAME = '{an}-{v}-sha256-{os}-{m}.json'
 
     @classmethod
     def get_hash(cls, filename):
@@ -309,19 +316,15 @@ class PackageGenerator(object):
 
         self.args = args
 
-        self.created_file = None    # not set until file is created
-        self.created_path = None    # not set until file is created
-
-        pl_sys = platform.system().lower()
-        self.operating_system = pl_sys if pl_sys != 'darwin' else 'osx'
-
-        self.machine_type = platform.machine().lower()
+        self.gen_file = None    # not set until file is created
+        self.gen_file_w_path = None    # not set until file is created
 
         self.standalone_name = self.args.name_format.format(
             an=self.args.app_name,
             v=self.args.app_version,
-            os=self.operating_system,
-            m=self.machine_type)
+            os=self.args.operating_system,
+            m=self.args.machine_type
+        )
 
         self.gb_dir, self.gb_filename = os.path.split(__file__)
 
@@ -330,11 +333,10 @@ class PackageGenerator(object):
 
         self._temp_script = os.path.join(
             self.args.work_dir,
-            uuid.uuid1().hex[:16] + '_' + self.args.console_script + '.py')
+            uuid.uuid1().hex[:16] + '_' + self.args.console_script + '.py'
+        )
 
         gravitybee.verboseprint("Package generator:")
-        gravitybee.verboseprint("operating_system:",self.operating_system)
-        gravitybee.verboseprint("machine_type:",self.machine_type)
         gravitybee.verboseprint("standalone_name:",self.standalone_name)
 
 
@@ -375,11 +377,11 @@ class PackageGenerator(object):
         gravitybee.verboseprint("Created hook file:",self.hook_file)
 
     def _cleanup(self):
-        # set self.created_file ad self.created_path even if not deleting
+        # set self.gen_file ad self.gen_file_w_path even if not deleting
         for standalone in glob.glob(os.path.join(self.args.work_dir, 'dist', self.standalone_name + '*')):
-            self.created_path = standalone
-            self.created_file = os.path.basename(self.created_path)
-            gravitybee.verboseprint("Filename:", self.created_file)
+            self.gen_file_w_path = standalone
+            self.gen_file = os.path.basename(self.gen_file_w_path)
+            gravitybee.verboseprint("Filename:", self.gen_file)
 
         if self.args.clean:
             gravitybee.verboseprint("Cleaning up...")
@@ -387,19 +389,19 @@ class PackageGenerator(object):
             # clean work dir
             # get standalone app out first if it exists
             gravitybee.verboseprint("Moving standalone application to current directory:")
-            if os.path.exists(os.path.join(os.getcwd(), self.created_file)):
+            if os.path.exists(os.path.join(os.getcwd(), self.gen_file)):
                 gravitybee.verboseprint("File already exists, removing...")
-                os.remove(os.path.join(os.getcwd(), self.created_file))
-            shutil.move(self.created_path, os.getcwd())
+                os.remove(os.path.join(os.getcwd(), self.gen_file))
+            shutil.move(self.gen_file_w_path, os.getcwd())
 
             # new path for app now it's been copied
-            self.created_path = os.path.join(os.getcwd(), self.created_file)
+            self.gen_file_w_path = os.path.join(os.getcwd(), self.gen_file)
 
             if os.path.isdir(self.args.work_dir):
                 gravitybee.verboseprint("Deleting working dir:", self.args.work_dir)
                 shutil.rmtree(self.args.work_dir)
 
-        gravitybee.verboseprint("Path of standalone:", self.created_path)
+        gravitybee.verboseprint("Standalone file with path:", self.gen_file_w_path)
 
     def _write_info_files(self):
 
@@ -411,6 +413,8 @@ class PackageGenerator(object):
             gb_info = {}
             gb_info['app_name'] = self.args.app_name
             gb_info['app_version'] = self.args.app_version
+            gb_info['operating_system'] = self.args.operating_system
+            gb_info['machine_type'] = self.args.machine_type
             gb_info['console_script'] = self.args.console_script
             gb_info['script_path'] = self.args.script_path
             gb_info['pkg_dir'] = self.args.pkg_dir
@@ -418,9 +422,9 @@ class PackageGenerator(object):
             gb_info['name_format'] = self.args.name_format
             gb_info['clean'] = self.args.clean
             gb_info['work_dir'] = self.args.work_dir
-            gb_info['created_file'] = self.created_file
-            gb_info['created_path'] = self.created_path
-            gb_info['file_sha'] = PackageGenerator.get_hash(self.created_path)
+            gb_info['gen_file'] = self.gen_file
+            gb_info['gen_file_w_path'] = self.gen_file_w_path
+            gb_info['file_sha'] = PackageGenerator.get_hash(self.gen_file_w_path)
             gb_info['extra_data'] = []
 
             if self.args.extra_data is not None:
@@ -436,16 +440,16 @@ class PackageGenerator(object):
             # create memory structure
             gb_files = []
             gb_file = {}
-            gb_file['filename'] = self.created_file
-            gb_file['path'] = self.created_path
-            if self.created_file.endswith(".exe"):
+            gb_file['filename'] = self.gen_file
+            gb_file['path'] = self.gen_file_w_path
+            if self.gen_file.endswith(".exe"):
                 gb_file['mime-type'] = 'application/vnd.microsoft.portable-executable'
             else:
                 gb_file['mime-type'] = 'application/x-executable'
             gb_file['label'] = \
                 self.args.app_name \
                 + " Standalone Executable (" \
-                + self.created_file \
+                + self.gen_file \
                 + ") [GravityBee Build]"
             gb_files.append(gb_file)
             
@@ -454,17 +458,19 @@ class PackageGenerator(object):
                 sha_file_info = {}
                 sha_file_info['filename'] = PackageGenerator.SHA_FILENAME.format(
                     an=self.args.app_name,
-                    v=self.args.app_version
+                    v=self.args.app_version,
+                    os=self.args.operating_system,
+                    m=self.args.machine_type
                 )
                 sha_file_info['path'] = sha_file_info['filename']
                 sha_file_info['mime-type'] = 'application/json'
                 sha_file_info['label'] = \
                     "SHA256 Hash for " \
-                    + self.created_file
+                    + self.gen_file
                 gb_files.append(sha_file_info)
 
                 sha_dict = {}
-                sha_dict[self.created_file] = gb_info['file_sha']
+                sha_dict[self.gen_file] = gb_info['file_sha']
 
                 gravitybee.verboseprint("Writing SHA256 file:", sha_file_info['filename'])
                 sha_file = open(sha_file_info['filename'], 'w')
@@ -571,7 +577,7 @@ class PackageGenerator(object):
             self._temp_script
         ]
 
-        if self.operating_system != 'windows':
+        if self.args.operating_system != 'windows':
             insert_point = commands.index('--onefile') + 1
             commands[insert_point:insert_point] = ['--runtime-tmpdir', '.']
 
