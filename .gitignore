@@ -3,6 +3,7 @@
 gb_workdir*
 gravitybee*json
 # executable
+.gravitybee/
 *-x86_64
 *-x86_64.exe
 gravitybee-environs*

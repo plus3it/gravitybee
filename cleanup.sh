@@ -9,15 +9,19 @@ read -n 1 -s -r -p "Press any key to continue"
 
 echo
 
+rm -rf .gravitybee
+rm -rf .pytest_cache
+
 rm -rf gravitybee/__pycache__
 
-rm -rf gb_workdir_*
+rm -rf tests/__pycache__
+rm -rf tests/gbtestapp/src/gbtestapp/__pycache__
+rm -rf tests/gbtestapp/src/gbtestapp/gbextradata/__pycache__
+rm -rf tests/gbtestapp/.pytest_cache
+rm -rf tests/gbtestapp/src/gbtestapp.egg-info
+
+rm -rf gbtestapp-4.2.6*
+
 rm -rf gravitybee.egg-info
 
-rm gravitybee-environs*
-rm gravitybee-*json
-rm gbtestapp-4.2.6*
-
-rm tests/gbtestapp/gravitybee-environs*
-rm tests/gbtestapp/gravitybee-*json
-rm tests/gbtestapp/gbtestapp-4.2.6*
+rm -rf tests/gbtestapp/.gravitybee

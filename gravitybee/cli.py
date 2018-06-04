@@ -105,7 +105,17 @@ click.disable_unicode_literals_warning = True
         + "application. Must include {an}, {v}, {os}, {m} "
         + "for app name, version, os, and machine type "
         + "respectively."
-) 
+)
+@click.option(
+    '--sha-format', 
+    'sha_format', 
+    default=None,
+    envvar='GB_SHA_FORMAT',
+    help="Format to be used in naming the SHA hash "
+        + "file. Must include {an}, {v}, {os}, {m} "
+        + "for app name, version, os, and machine type "
+        + "respectively."
+)  
 @click.option(
     '--no-file', 
     'no_file', 
@@ -126,6 +136,20 @@ click.disable_unicode_literals_warning = True
     ]), 
     help="Where to put SHA256 hash for generated file."
 ) 
+@click.option(
+    '--staging-dir', 
+    'staging_dir',
+    default=None,
+    envvar='GB_STAGING_DIR',
+    help="Where to stage the artifacts of the build."
+) 
+@click.option(
+    '--with-latest', 
+    'with_latest',
+    default=False,
+    envvar='GB_WITH_LATEST',
+    help="Whether to include a latest directory as part of staging."
+)
 
 def main(**kwargs):
     """Entry point for GravityBee CLI."""
