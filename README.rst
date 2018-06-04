@@ -93,7 +93,7 @@ GB_PKG_DIR        --pkg-dir, -p         The relative or absolute path of the pac
                                         containing your application.
                                         This directory must contain a ``setup.py`` file.
                                         *Default:* ``.``
-GB_VERBOSE        --verbose, -v         Verbose mode.
+GB_VERBOSE        --verbose, -v         Flag for verbose mode.
 GB_EXTRA_DATA     --extra-data, -e      Relative to package directory, any extra
                                         directories or files that need
                                         to be included, that wouldn't normally be
@@ -104,32 +104,58 @@ GB_WORK_DIR       --work-dir, -w        Directory for use by GravityBee to build
                                         application. Cannot be an existing
                                         directory as it will be deleted if the clean
                                         option is used.
-                                        *Default:* ``gb_workdir_<uuid>``
-GB_CLEAN          --clean, -c           Whether to clean up the work directory after
-                                        the build. If used, GravityBee will copy the
-                                        built standalone application to the current
-                                        directory before deleting.
+                                        *Default:* ``.gravitybee/build``
+GB_CLEAN          --clean, -c           Flag indicating whether to
+                                        clean up the work directory
+                                        after
+                                        the build. If used, GravityBee
+                                        will copy the
+                                        built standalone application
+                                        to top-level GravityBee
+                                        directory (``.gravitybee``)
+                                        before deleting.
                                         *Default: Not*
 GB_NAME_FORMAT    --name-format, -f     Format to be used in naming the standalone
                                         application. Must include
                                         {an}, {v}, {os}, {m}
                                         for app name, version, os, and machine
-                                        type respectively.
+                                        type respectively. On Windows, ``.exe``
+                                        will be added automatidally.
                                         *Default:* ``{an}-{v}-standalone-{os}-{m}``
-GB_NO_FILE        --no-file             Do not write the output files (see below).
-                                        If the ``--sha`` flag is used to
+GB_SHA_FORMAT     --sha-format          Format to be used in naming the SHA hash
+                                        file. Must include
+                                        {an}, {v}, {os}, {m}
+                                        for app name, version, os, and machine
+                                        type respectively.
+                                        *Default:* ``{an}-{v}-sha256-{os}-{m}.json``
+GB_NO_FILE        --no-file             Flag indicating to not write
+                                        the output files (see below).
+                                        If the ``--sha`` option is used to
                                         write a
-                                        hash to a file, that file will still be
+                                        hash to a file, that file will
+                                        still be
                                         written regardless.
                                         *Default: Will write
                                         files*
-GB_SHA            --sha                 Where to put SHA256
+GB_SHA            --sha                 Option of where to put SHA256
                                         hash for generated file.
                                         Valid options are ``file``
                                         (create a separate file with
                                         hash), or ``info`` (only
                                         include the hash in the file
                                         info output). *Default:* ``info``
+GB_STAGING_DIR    --staging-dir         Option to indicate where GravityBee
+                                        should stage build artifacts
+                                        (standalone executable and hash
+                                        file). Two subdirectories will
+                                        be created, one based on version
+                                        and the other called "latest."
+                                        *Default:* ``.gravitybee/dist``
+GB_WITH_LATEST    --with-latest         Flag to indicate if GravityBee
+                                        should create a "latest"
+                                        directory in the staging area
+                                        with a copy of the artifacts.
+                                        *Default: Not*
 ================  ==================    ==========================================
 
 

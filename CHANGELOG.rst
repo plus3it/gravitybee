@@ -1,6 +1,22 @@
 CHANGE LOG
 ==========
 
+0.1.13 - 2018.06.04
+-------------------
+* [ENHANCEMENT] Rearrange files created by GravityBee to all be
+  contained in a ``.gravitybee`` subdirectory of the current
+  directory.
+* [ENHANCEMENT] Place the distribution artifacts in the staging
+  directory, with a default value of ``.gravitybee/dist``.
+* [ENHANCEMENT] Add option ``--staging-dir`` to specify directory
+  where artifact staging should take place and export another
+  environment variable ``GB_ENV_STAGING_DIR``.
+* [ENHANCEMENT] Add option ``--with-latest`` to allow creation of
+  a second artifact staging directory called "latest" containing
+  the artifacts renamed with "latest" in the place of the version.
+* [ENHANCEMENT] Add option ``--sha-format`` to allow custom naming
+  of the SHA hash file.
+
 0.1.12 - 2018.05.29
 -------------------
 * [ENHANCEMENT] Add OS and machine type to the SHA256 hash file (to

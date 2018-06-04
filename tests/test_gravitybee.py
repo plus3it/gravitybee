@@ -7,7 +7,7 @@ import json
 
 from subprocess import check_output
 
-from gravitybee import Arguments, PackageGenerator, EXIT_OKAY
+from gravitybee import Arguments, PackageGenerator, EXIT_OKAY, FILE_DIR
 
 # should be first so that other tests haven't created files
 def test_no_output():
@@ -23,7 +23,7 @@ def test_no_output():
     pg = PackageGenerator(args)
     generated_okay = pg.generate()
 
-    sha_filename = PackageGenerator.SHA_FILENAME.format(
+    sha_filename = pg.args.sha_format.format(
         an=pg.args.app_name,
         v=pg.args.app_version,
         os=pg.args.operating_system,
@@ -54,13 +54,6 @@ def test_no_output_but_sha():
     pg = PackageGenerator(args)
     generated_okay = pg.generate()
 
-    sha_filename = PackageGenerator.SHA_FILENAME.format(
-        an=pg.args.app_name,
-        v=pg.args.app_version,
-        os=pg.args.operating_system,
-        m=pg.args.machine_type        
-    )
-
     assert generated_okay == EXIT_OKAY \
         and not os.path.exists(PackageGenerator.INFO_FILE) \
         and not os.path.exists(PackageGenerator.FILES_FILE) \
@@ -68,7 +61,7 @@ def test_no_output_but_sha():
             + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT) \
         and not os.path.exists(PackageGenerator.ENVIRON_SCRIPT \
             + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT) \
-        and os.path.exists(sha_filename) # should be created even if no_file flag
+        and os.path.exists(pg.sha_file_w_path) # should be created even if no_file flag
 
 @pytest.fixture
 def arguments():
@@ -94,9 +87,13 @@ def test_executable(arguments):
     pg = PackageGenerator(arguments)
     generated_okay = pg.generate()
     if generated_okay == EXIT_OKAY:
-        files = glob.glob('gbtestapp-4.2.6-standalone*')
+        files = glob.glob(os.path.join(
+            pg.args.staging_dir,
+            pg.args.app_version,
+            'gbtestapp-4.2.6-standalone*'
+        ))
 
-        cmd_output = check_output(os.path.join('.',files[0]))
+        cmd_output = check_output(files[0])
         compare_file = open(os.path.join("tests", "gbtestapp", "correct_stdout.txt"),"rb").read()
 
         assert cmd_output == compare_file
@@ -108,7 +105,12 @@ def test_filename_file(arguments):
     pg = PackageGenerator(arguments)
     generated_okay = pg.generate()
     if generated_okay == EXIT_OKAY:
-        sa_file = open("gravitybee-files.json", "r")
+        sa_file = open(
+            os.path.join(
+                FILE_DIR,
+                "gravitybee-files.json"
+            ), "r"
+        )
         gb_files = json.loads(sa_file.read())
         sa_file.close
 
@@ -132,13 +134,7 @@ def test_file_sha(arguments):
         info = json.loads(info_file.read())
         info_file.close()
 
-        sha_filename = PackageGenerator.SHA_FILENAME.format(
-            an=info['app_name'],
-            v=info['app_version'],
-            os=info['operating_system'],
-            m=info['machine_type']          
-        )
-        sha_file = open(sha_filename, "r")
+        sha_file = open(pg.sha_file_w_path, "r")
         sha_dict = json.loads(sha_file.read())
         sha_file.close()
 
@@ -148,6 +144,62 @@ def test_file_sha(arguments):
     else:
         assert False
 
+@pytest.fixture
+def latest_arguments():
+    """Returns an Arguments instance using the included app"""
+    return Arguments(
+        src_dir="src",
+        extra_data=["gbextradata"],
+        verbose=True,
+        pkg_dir=os.path.join("tests", "gbtestapp"),
+        sha=Arguments.OPTION_SHA_FILE,
+        clean=True,
+        with_latest=True
+    )
+
+def test_latest(latest_arguments):
+    """
+    Checks to make sure the latest directory is created and
+    populated with standalone executable and SHA.
+    """
+
+    
+    pg = PackageGenerator(latest_arguments)
+    generated_okay = pg.generate()
+
+    if generated_okay == EXIT_OKAY:
+
+        latest_standalone = pg.args.name_format.format(
+            an=pg.args.app_name,
+            v='latest',
+            os=pg.args.operating_system,
+            m=pg.args.machine_type
+        )
+
+        sa_files = glob.glob(os.path.join(
+            pg.args.staging_dir,
+            'latest',
+            latest_standalone + '*'
+        ))
+        
+        sha_file = pg.args.sha_format.format(
+            an=pg.args.app_name,
+            v='latest',
+            os=pg.args.operating_system,
+            m=pg.args.machine_type
+        )
+
+        sha_files = glob.glob(os.path.join(
+            pg.args.staging_dir,
+            'latest',
+            sha_file
+        ))
+
+        assert os.path.isdir(os.path.join(pg.args.staging_dir, 'latest')) \
+            and len(sa_files) > 0 \
+            and len(sha_files) > 0
+    else:
+        assert False    
 
 @pytest.fixture
 def defaults():
@@ -167,11 +219,14 @@ def test_src_dir(defaults):
 def test_name_format(defaults):
     assert defaults.name_format == '{an}-{v}-standalone-{os}-{m}'
 
+def test_sha_format(defaults):
+    assert defaults.sha_format == '{an}-{v}-sha256-{os}-{m}.json'    
+
 def test_extra_data(defaults):
     assert defaults.extra_data is None
 
 def test_work_dir(defaults):
-    assert defaults.work_dir[:11] == 'gb_workdir_'
+    assert defaults.work_dir[:17] == os.path.join(FILE_DIR, 'build')[:17]
 
 def test_console_script(defaults):
     assert defaults.console_script == 'gbtestapp'

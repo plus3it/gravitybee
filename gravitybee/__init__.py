@@ -22,7 +22,6 @@ Example:
         $ gravitybee --help
 """
 
-import sys
 import os
 import pyppyn
 import gravitybee
@@ -35,11 +34,10 @@ import json
 from string import Template
 import hashlib
 
-import sys # won't need if no system.exit
-
-__version__ = "0.1.12"
+__version__ = "0.1.13"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
+FILE_DIR = ".gravitybee"
 
 verbose = False
 pyppy = None
@@ -117,6 +115,14 @@ class Arguments(object):
             )
         )
 
+        self.sha_format = kwargs.get(
+            'sha_format',
+            os.environ.get(
+                'GB_SHA_FORMAT',
+                '{an}-{v}-sha256-{os}-{m}.json'
+            )
+        )
+
         self.extra_data = kwargs.get(
             'extra_data',
             None
@@ -136,7 +142,7 @@ class Arguments(object):
             'work_dir',
             os.environ.get(
                 'GB_WORK_DIR',
-                'gb_workdir_' + uuid.uuid1().hex[:16]
+                os.path.join(gravitybee.FILE_DIR, 'build', uuid.uuid1().hex[:16])
             )
         )
 
@@ -146,6 +152,19 @@ class Arguments(object):
                 "ERROR: work_dir must not exist. It may be deleted."
             )
             raise FileExistsError
+
+        self.staging_dir = kwargs.get(
+            'staging_dir',
+            os.environ.get(
+                'GB_STAGING_DIR',
+                os.path.join(gravitybee.FILE_DIR, 'dist')
+            )
+        )
+
+        self.with_latest = kwargs.get(
+            'with_latest',
+            False
+        )
 
         # arguments that DO depend on pyppyn
         gravitybee.pyppy = pyppyn.ConfigRep(setup_path=self.pkg_dir,verbose=gravitybee.verbose)
@@ -196,6 +215,8 @@ class Arguments(object):
         gravitybee.verboseprint("name_format:",self.name_format)
         gravitybee.verboseprint("clean:",self.clean)
         gravitybee.verboseprint("work_dir:",self.work_dir)
+        gravitybee.verboseprint("staging_dir:",self.staging_dir)
+        gravitybee.verboseprint("with_latest:",self.with_latest)
         gravitybee.verboseprint("sha:",self.sha)
 
         if self.extra_data is not None:
@@ -284,14 +305,13 @@ class PackageGenerator(object):
     """
 
     ENVIRON_PREFIX = 'GB_ENV_'
-    INFO_FILE = 'gravitybee-info.json'
-    FILES_FILE = 'gravitybee-files.json'
-    ENVIRON_SCRIPT = 'gravitybee-environs'
+    INFO_FILE = os.path.join(gravitybee.FILE_DIR, 'gravitybee-info.json')
+    FILES_FILE = os.path.join(gravitybee.FILE_DIR, 'gravitybee-files.json')
+    ENVIRON_SCRIPT = os.path.join(gravitybee.FILE_DIR, 'gravitybee-environs')
     ENVIRON_SCRIPT_POSIX_EXT = '.sh' 
     ENVIRON_SCRIPT_WIN_EXT = '.bat' 
     ENVIRON_SCRIPT_POSIX_ENCODE = 'utf-8'
     ENVIRON_SCRIPT_WIN_ENCODE = 'cp1252'
-    SHA_FILENAME = '{an}-{v}-sha256-{os}-{m}.json'
 
     @classmethod
     def get_hash(cls, filename):
@@ -316,8 +336,10 @@ class PackageGenerator(object):
 
         self.args = args
 
-        self.gen_file = None    # not set until file is created
-        self.gen_file_w_path = None    # not set until file is created
+        self.gen_file = None            # not set until file is created
+        self.gen_file_w_path = None     # not set until file is created
+        self.sha_file = None            # not set until file is created
+        self.sha_file_w_path = None     # not set until file is created
 
         self.standalone_name = self.args.name_format.format(
             an=self.args.app_name,
@@ -331,6 +353,9 @@ class PackageGenerator(object):
         if not os.path.exists(self.args.work_dir):
             os.makedirs(self.args.work_dir)
 
+        if not os.path.exists(gravitybee.FILE_DIR):
+            os.makedirs(gravitybee.FILE_DIR)            
+
         self._temp_script = os.path.join(
             self.args.work_dir,
             uuid.uuid1().hex[:16] + '_' + self.args.console_script + '.py'
@@ -342,11 +367,19 @@ class PackageGenerator(object):
 
     def _create_hook(self):
         # get the hook ready
-        template = Template(open(os.path.join(self.gb_dir, "hook-template"), "r").read())
+        template = Template(
+            open(
+                os.path.join(
+                    self.gb_dir, 
+                    "hook-template"
+                ), 
+                "r"
+            ).read()
+        )
 
         hook = template.safe_substitute({ 'app_name': self.args.app_name })
 
-        # 1 extra data
+        # 1 - extra data
         hook += "# collection extra data, if any (using --extra-data option)"
         try:
             for data in self.args.extra_data:
@@ -361,55 +394,154 @@ class PackageGenerator(object):
         except:
             pass
 
-        # 2 package metadata
+        # 2 - package metadata
         hook += "# add dependency metadata"
         for package in gravitybee.pyppy.get_required():
             #datas += copy_metadata(pkg)
             hook += "\ndatas += copy_metadata('" + package + "')"
         hook += "\n"
 
-        # 3 write file
-        self.hook_file = os.path.join(self.args.work_dir, "hook-" + self.args.pkg_name + ".py")
-        f = open(self.hook_file,"w+")
+        # 3 - write file
+        self.hook_file = os.path.join(
+            self.args.work_dir, 
+            "hook-" + self.args.pkg_name + ".py"
+        )
+        f = open(self.hook_file, "w+")
         f.write(hook)
         f.close()
 
         gravitybee.verboseprint("Created hook file:",self.hook_file)
 
-    def _cleanup(self):
-        # set self.gen_file ad self.gen_file_w_path even if not deleting
-        for standalone in glob.glob(os.path.join(self.args.work_dir, 'dist', self.standalone_name + '*')):
-            self.gen_file_w_path = standalone
-            self.gen_file = os.path.basename(self.gen_file_w_path)
-            gravitybee.verboseprint("Filename:", self.gen_file)
 
-        if self.args.clean:
-            gravitybee.verboseprint("Cleaning up...")
+    def _process_sha(self):
 
-            # clean work dir
-            # get standalone app out first if it exists
-            gravitybee.verboseprint("Moving standalone application to current directory:")
-            if os.path.exists(os.path.join(os.getcwd(), self.gen_file)):
-                gravitybee.verboseprint("File already exists, removing...")
-                os.remove(os.path.join(os.getcwd(), self.gen_file))
-            shutil.move(self.gen_file_w_path, os.getcwd())
+        gravitybee.verboseprint("Processing SHA256 hash info...")
 
-            # new path for app now it's been copied
-            self.gen_file_w_path = os.path.join(os.getcwd(), self.gen_file)
+        self.file_sha = PackageGenerator.get_hash(self.gen_file_w_path)
 
-            if os.path.isdir(self.args.work_dir):
-                gravitybee.verboseprint("Deleting working dir:", self.args.work_dir)
-                shutil.rmtree(self.args.work_dir)
+        if self.args.sha == Arguments.OPTION_SHA_FILE:
 
-        gravitybee.verboseprint("Standalone file with path:", self.gen_file_w_path)
+            # in memory version of file contents
+            sha_dict = {}
+            sha_dict[self.gen_file] = self.file_sha            
 
-    def _write_info_files(self):
+            # file name
+            self.sha_file = self.args.sha_format.format(
+                an=self.args.app_name,
+                v=self.args.app_version,
+                os=self.args.operating_system,
+                m=self.args.machine_type
+            )
 
-        if not self.args.dont_write_file or \
-            self.args.sha == Arguments.OPTION_SHA_FILE:
+            gravitybee.verboseprint("SHA256 hash file:", self.sha_file)
+            
+            sha_file = open(self.sha_file, 'w')
+            sha_file.write(json.dumps(sha_dict))
+            sha_file.close()
 
-            # write all the general info about run for consumption
-            # by other apps
+
+    def _stage_artifacts(self):
+
+        gravitybee.verboseprint("Staging artifacts...")
+
+        # create directories
+        if os.path.exists(self.args.staging_dir):
+            gravitybee.verboseprint("Removing staging directory:", self.args.staging_dir)
+            shutil.rmtree(self.args.staging_dir)
+            
+        os.makedirs(self.args.staging_dir)
+
+        # version-based dir
+        version_dst = os.path.join(
+            self.args.staging_dir, 
+            self.args.app_version
+        )
+        if not os.path.exists(version_dst):
+            os.makedirs(version_dst)
+
+        shutil.move(self.gen_file_w_path, version_dst)
+
+        # update path
+        self.gen_file_w_path = os.path.join(
+            version_dst,
+            self.gen_file
+        )
+
+        gravitybee.verboseprint("Main artifact:", self.gen_file_w_path)
+
+        # dir just called 'latest'
+        if self.args.with_latest:
+
+            gravitybee.verboseprint("Creating latest dir...")
+
+            latest_dst = os.path.join(
+                self.args.staging_dir, 
+                'latest'
+            )
+            if not os.path.exists(latest_dst):
+                os.makedirs(latest_dst)
+
+            gravitybee.verboseprint("Copying to latest...")
+
+            shutil.copy2(self.gen_file_w_path, latest_dst)
+
+            latest_standalone_name = self.args.name_format.format(
+                an=self.args.app_name,
+                v='latest',
+                os=self.args.operating_system,
+                m=self.args.machine_type
+            )
+
+            os.rename(
+                os.path.join(latest_dst, self.gen_file),
+                os.path.join(latest_dst, latest_standalone_name)
+            )
+
+            gravitybee.verboseprint(
+                "Latest artifact:", 
+                os.path.join(latest_dst, latest_standalone_name)
+            )
+
+        if self.args.sha == Arguments.OPTION_SHA_FILE:
+
+            gravitybee.verboseprint("Staging SHA hash artifact:", self.sha_file)
+
+            shutil.move(self.sha_file, version_dst)
+
+            self.sha_file_w_path = os.path.join(
+                version_dst,
+                self.sha_file
+            )
+
+            gravitybee.verboseprint("SHA artifact:", self.sha_file_w_path)
+
+            if self.args.with_latest:
+
+                shutil.copy2(self.sha_file_w_path, latest_dst)
+
+                latest_sha_file = self.args.sha_format.format(
+                    an=self.args.app_name,
+                    v='latest',
+                    os=self.args.operating_system,
+                    m=self.args.machine_type
+                )
+
+                os.rename(
+                    os.path.join(latest_dst, self.sha_file),
+                    os.path.join(latest_dst, latest_sha_file)
+                )
+
+                gravitybee.verboseprint(
+                    "Latest SHA artifact:",
+                    os.path.join(latest_dst, latest_sha_file)
+                )
+
+
+    def _write_info_files(self):      
+
+        if not self.args.dont_write_file:
+
+            # GATHER INFO -------------------------------------------
             gb_info = {}
             gb_info['app_name'] = self.args.app_name
             gb_info['app_version'] = self.args.app_version
@@ -422,20 +554,33 @@ class PackageGenerator(object):
             gb_info['name_format'] = self.args.name_format
             gb_info['clean'] = self.args.clean
             gb_info['work_dir'] = self.args.work_dir
+            gb_info['staging_dir'] = self.args.staging_dir
+            gb_info['with_latest'] = self.args.with_latest
             gb_info['gen_file'] = self.gen_file
             gb_info['gen_file_w_path'] = self.gen_file_w_path
-            gb_info['file_sha'] = PackageGenerator.get_hash(self.gen_file_w_path)
+            gb_info['file_sha'] = self.file_sha
+
+            if self.args.sha == Arguments.OPTION_SHA_FILE:
+                gb_info['sha_file'] = self.sha_file
+                gb_info['sha_file_w_path'] = self.sha_file_w_path
+                gb_info['sha_format'] = self.args.sha_format
+
             gb_info['extra_data'] = []
 
             if self.args.extra_data is not None:
                 for extra_data in self.args.extra_data:
                     gb_info['extra_data'].append(extra_data)
             
-            if not self.args.dont_write_file:
-                gravitybee.verboseprint("Writing infomation file:", PackageGenerator.INFO_FILE)
-                info_file = open(PackageGenerator.INFO_FILE,'w')
-                info_file.write(json.dumps(gb_info))
-                info_file.close()
+            # INFO file ---------------------------------------------
+            gravitybee.verboseprint(
+                "Writing information file:", 
+                PackageGenerator.INFO_FILE
+            )
+            info_file = open(PackageGenerator.INFO_FILE,'w')
+            info_file.write(json.dumps(gb_info))
+            info_file.close()
+
+            # FILES file --------------------------------------------
 
             # create memory structure
             gb_files = []
@@ -456,72 +601,87 @@ class PackageGenerator(object):
             if self.args.sha == Arguments.OPTION_SHA_FILE:
 
                 sha_file_info = {}
-                sha_file_info['filename'] = PackageGenerator.SHA_FILENAME.format(
-                    an=self.args.app_name,
-                    v=self.args.app_version,
-                    os=self.args.operating_system,
-                    m=self.args.machine_type
-                )
-                sha_file_info['path'] = sha_file_info['filename']
+                sha_file_info['filename'] = self.sha_file
+                sha_file_info['path'] = self.sha_file_w_path
                 sha_file_info['mime-type'] = 'application/json'
                 sha_file_info['label'] = \
                     "SHA256 Hash for " \
                     + self.gen_file
                 gb_files.append(sha_file_info)
 
-                sha_dict = {}
-                sha_dict[self.gen_file] = gb_info['file_sha']
+            # write to disk
+            gravitybee.verboseprint(
+                "Writing files file:", 
+                PackageGenerator.FILES_FILE
+            )
+            file_file = open(PackageGenerator.FILES_FILE, 'w')
+            file_file.write(json.dumps(gb_files))
+            file_file.close()
 
-                gravitybee.verboseprint("Writing SHA256 file:", sha_file_info['filename'])
-                sha_file = open(sha_file_info['filename'], 'w')
-                sha_file.write(json.dumps(sha_dict))
-                sha_file.close()
+            # ENVIRONS ----------------------------------------------
+            
+            # remove attributes that aren't useful as exported
+            # environs
+            del gb_info['extra_data']
+            del gb_info['name_format']
+            del gb_info['sha_format']
+            del gb_info['clean']
 
-            if not self.args.dont_write_file:
-                # write to disk
-                gravitybee.verboseprint(
-                    "Writing files file:", 
-                    PackageGenerator.FILES_FILE
-                )
-                file_file = open(PackageGenerator.FILES_FILE, 'w')
-                file_file.write(json.dumps(gb_files))
-                file_file.close()
+            gravitybee.verboseprint(
+                "Writing environ script:",
+                PackageGenerator.ENVIRON_SCRIPT \
+                    + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
+            )
+            shell = open(
+                PackageGenerator.ENVIRON_SCRIPT \
+                    + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT,
+                mode = 'w',
+                encoding = PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE
+            )
 
-                del gb_info['extra_data']
+            for k, v in gb_info.items():
+                shell.write("export ")
+                shell.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
+                shell.write('="')
+                shell.write(str(v))
+                shell.write('"\n')
 
-                gravitybee.verboseprint(
-                    "Writing environ script:",
-                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
-                )
-                shell = open(
-                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT,
-                    mode = 'w',
-                    encoding = PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE
-                )
-                for k, v in gb_info.items():
-                    shell.write("export ")
-                    shell.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
-                    shell.write('="')
-                    shell.write(str(v))
-                    shell.write('"\n')
-                shell.close()
+            shell.close()
 
-                gravitybee.verboseprint(
-                    "Writing environ script:",
-                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
-                )
-                bat = open(
-                    PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT,
-                    mode = 'w',
-                    encoding = PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE
-                )
-                for k, v in gb_info.items():
-                    bat.write("set ")
-                    bat.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
-                    bat.write("=")
-                    bat.write(str(v))
-                    bat.write("\r\n")
-                bat.close()
+            gravitybee.verboseprint(
+                "Writing environ script:",
+                PackageGenerator.ENVIRON_SCRIPT \
+                    + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
+            )
+
+            bat = open(
+                PackageGenerator.ENVIRON_SCRIPT \
+                    + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT,
+                mode = 'w',
+                encoding = PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE
+            )
+
+            for k, v in gb_info.items():
+                bat.write("set ")
+                bat.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
+                bat.write("=")
+                bat.write(str(v))
+                bat.write("\r\n")
+
+            bat.close()
+
+
+    def _cleanup(self):
+
+        if self.args.clean:
+            gravitybee.verboseprint("Cleaning up...")
+
+            # clean work dir
+
+            if os.path.isdir(self.args.work_dir):
+                gravitybee.verboseprint("Deleting working dir:", self.args.work_dir)
+                shutil.rmtree(self.args.work_dir)
+
 
     def generate(self):
         self._create_hook()
@@ -596,10 +756,26 @@ class PackageGenerator(object):
             **subproc_args
         )
 
+        # todo: add logging
+        # todo: add stdout, stderr to logging
         # when not verbose, stdout is available here: result.stdout
         # when not verbose, stderr is available here: result.stderr
 
+        # get info about standalone binary
+        for standalone in glob.glob(
+            os.path.join(
+                self.args.work_dir, 
+                'dist', 
+                self.standalone_name + '*'
+            )
+        ):
+            self.gen_file_w_path = standalone
+            self.gen_file = os.path.basename(self.gen_file_w_path)
+            gravitybee.verboseprint("Generated standalone file:", self.gen_file)  
+
+        self._process_sha()         # creates the sha files need for staging
+        self._stage_artifacts()     # creates the file names needed to write
+        self._write_info_files()    # write info (with paths from staging) and sha
         self._cleanup()
-        self._write_info_files()
         return gravitybee.EXIT_OKAY
 
