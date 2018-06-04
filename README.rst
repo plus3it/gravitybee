@@ -104,16 +104,11 @@ GB_WORK_DIR       --work-dir, -w        Directory for use by GravityBee to build
                                         application. Cannot be an existing
                                         directory as it will be deleted if the clean
                                         option is used.
-                                        *Default:* ``.gravitybee/build``
+                                        *Default:* ``.gravitybee/build/<uuid>``
 GB_CLEAN          --clean, -c           Flag indicating whether to
                                         clean up the work directory
                                         after
-                                        the build. If used, GravityBee
-                                        will copy the
-                                        built standalone application
-                                        to top-level GravityBee
-                                        directory (``.gravitybee``)
-                                        before deleting.
+                                        the build.
                                         *Default: Not*
 GB_NAME_FORMAT    --name-format, -f     Format to be used in naming the standalone
                                         application. Must include
@@ -147,7 +142,7 @@ GB_SHA            --sha                 Option of where to put SHA256
 GB_STAGING_DIR    --staging-dir         Option to indicate where GravityBee
                                         should stage build artifacts
                                         (standalone executable and hash
-                                        file). Two subdirectories will
+                                        file). Two subdirectories can
                                         be created, one based on version
                                         and the other called "latest."
                                         *Default:* ``.gravitybee/dist``
@@ -161,7 +156,8 @@ GB_WITH_LATEST    --with-latest         Flag to indicate if GravityBee
 
 
 
-If you are using environment variables, you could set them up like this.
+If you are using environment variables, you could set them up like
+this.
 
 .. code-block:: bash
 

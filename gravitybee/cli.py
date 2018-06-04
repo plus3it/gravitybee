@@ -148,6 +148,7 @@ click.disable_unicode_literals_warning = True
     'with_latest',
     default=False,
     envvar='GB_WITH_LATEST',
+    is_flag=True,
     help="Whether to include a latest directory as part of staging."
 )
 

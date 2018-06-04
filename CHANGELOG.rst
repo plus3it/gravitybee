@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+0.1.14 - 2018.06.04
+-------------------
+* [BUG FIX] ``--with-latest`` was not working as a CL flag.
+
 0.1.13 - 2018.06.04
 -------------------
 * [ENHANCEMENT] Rearrange files created by GravityBee to all be
