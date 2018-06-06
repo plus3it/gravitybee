@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+0.1.15 - 2018.06.06
+-------------------
+* [BUG FIX] Losing ``.exe`` extension with Windows executables in the
+  latest staging area.
+
 0.1.14 - 2018.06.04
 -------------------
 * [BUG FIX] ``--with-latest`` was not working as a CL flag.

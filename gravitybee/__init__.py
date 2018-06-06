@@ -492,6 +492,9 @@ class PackageGenerator(object):
                 m=self.args.machine_type
             )
 
+            if self.gen_file.endswith(".exe"):
+                latest_standalone_name += ".exe"
+
             os.rename(
                 os.path.join(latest_dst, self.gen_file),
                 os.path.join(latest_dst, latest_standalone_name)
