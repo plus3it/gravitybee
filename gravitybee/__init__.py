@@ -34,7 +34,7 @@ import json
 from string import Template
 import hashlib
 
-__version__ = "0.1.14"
+__version__ = "0.1.15"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
 FILE_DIR = ".gravitybee"
@@ -491,6 +491,9 @@ class PackageGenerator(object):
                 os=self.args.operating_system,
                 m=self.args.machine_type
             )
+
+            if self.gen_file.endswith(".exe"):
+                latest_standalone_name += ".exe"
 
             os.rename(
                 os.path.join(latest_dst, self.gen_file),
