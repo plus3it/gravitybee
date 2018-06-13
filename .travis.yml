@@ -6,16 +6,18 @@ install:
   - echo $PYTHONPATH
   - pip install --editable .
   - pip install --editable tests/gbtestapp
+before_script:
+  - |
+    if [ "$TRAVIS_BRANCH" = "dev" ]; then
+      sed -i -E "s/^(version = )(.*)/\1\2.$TRAVIS_BUILD_NUMBER/" $TRAVIS_BUILD_DIR/setup.cfg
+    fi  
 script:
   - pytest
 before_deploy:
   - |
-    if [ "$TRAVIS_BRANCH" = "dev" ]; then
-      sed -i -E "s/^(version = )(.*)/\1\2.$TRAVIS_BUILD_NUMBER/" $TRAVIS_BUILD_DIR/setup.cfg
-    elif [ "$TRAVIS_BRANCH" = "master" ]; then
+    if [ "$TRAVIS_BRANCH" = "master" ]; then
       export RELEASE_VERSION=$(grep "version = " $TRAVIS_BUILD_DIR/setup.cfg | sed "s/version = //")
       export RELEASE_BODY="* [gravitybee v$RELEASE_VERSION CHANGELOG](https://github.com/YakDriver/gravitybee/blob/$RELEASE_VERSION/CHANGELOG.rst)"
-      (set -x; git tag -a $RELEASE_VERSION -m $RELEASE_VERSION)
     fi
 deploy:
   - provider: pypi

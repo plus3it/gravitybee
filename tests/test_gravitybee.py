@@ -93,8 +93,8 @@ def test_executable(arguments):
             'gbtestapp-4.2.6-standalone*'
         ))
 
-        cmd_output = check_output(files[0])
-        compare_file = open(os.path.join("tests", "gbtestapp", "correct_stdout.txt"),"rb").read()
+        cmd_output = check_output(files[0], universal_newlines=True)
+        compare_file = open(os.path.join("tests", "gbtestapp", "correct_stdout.txt"),"rU").read()
 
         assert cmd_output == compare_file
     else:

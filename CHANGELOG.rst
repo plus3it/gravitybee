@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+0.1.16 - 2018.06.21
+-------------------
+* [BUG FIX] Compatibility issues with Windows resolved.
+
 0.1.15 - 2018.06.06
 -------------------
 * [BUG FIX] Losing ``.exe`` extension with Windows executables in the
