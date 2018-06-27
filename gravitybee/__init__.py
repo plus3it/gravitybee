@@ -34,7 +34,7 @@ import json
 from string import Template
 import hashlib
 
-__version__ = "0.1.16"
+__version__ = "0.1.17"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
 FILE_DIR = ".gravitybee"
