@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+0.1.17 - 2018.06.27
+-------------------
+* [BUG FIX] Compatibility issues with CentOS 6 resolved.
+
 0.1.16 - 2018.06.21
 -------------------
 * [BUG FIX] Compatibility issues with Windows resolved.
