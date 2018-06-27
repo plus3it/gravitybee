@@ -312,8 +312,8 @@ class PackageGenerator(object):
     ENVIRON_SCRIPT_WIN_EXT = '.bat'
     ENVIRON_SCRIPT_POSIX_ENCODE = 'utf-8'
     ENVIRON_SCRIPT_WIN_ENCODE = 'cp1252'
-    EXTRA_PACKAGES_WINDOWS = ['packaging']
-    EXTRA_MODULES_WINDOWS = ['packaging', 'packaging.version', 'packaging.specifiers']
+    EXTRA_PACKAGES = ['packaging']
+    EXTRA_MODULES = ['packaging', 'packaging.version', 'packaging.specifiers']
 
     @classmethod
     def get_hash(cls, filename):
@@ -403,7 +403,7 @@ class PackageGenerator(object):
 
 
         if self.args.operating_system == 'windows':
-            for extra_package in self.EXTRA_PACKAGES_WINDOWS:
+            for extra_package in self.EXTRA_PACKAGES:
                 if extra_package not in gravitybee.pyppy.get_required():
                     hook += "\ndatas += copy_metadata('" + extra_package + "')"
 
@@ -742,15 +742,13 @@ class PackageGenerator(object):
         for pkg in gravitybee.pyppy.get_required():
             commands += [ '--hidden-import', pkg ]
 
-        if self.args.operating_system == 'windows':
-            for extra_package in self.EXTRA_PACKAGES_WINDOWS:
-                if extra_package not in gravitybee.pyppy.get_required():
-                    pyppyn.ConfigRep.install_package(extra_package)
+        for extra_package in self.EXTRA_PACKAGES:
+            if extra_package not in gravitybee.pyppy.get_required():
+                pyppyn.ConfigRep.install_package(extra_package)
 
-        if self.args.operating_system == 'windows':
-            for extra_module in self.EXTRA_MODULES_WINDOWS:
-                pyppyn.ConfigRep.import_module(extra_module)
-                commands += [ '--hidden-import', extra_module ]
+        for extra_module in self.EXTRA_MODULES:
+            pyppyn.ConfigRep.import_module(extra_module)
+            commands += [ '--hidden-import', extra_module ]
 
         commands += [
             self._temp_script
