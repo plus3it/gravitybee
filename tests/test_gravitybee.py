@@ -63,6 +63,25 @@ def test_no_output_but_sha():
             + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT) \
         and os.path.exists(pg.sha_file_w_path) # should be created even if no_file flag
 
+# see if generated "file" is actually a dir instead
+def test_onedir():
+    """Makes sure everything works in onedir mode."""
+    args = Arguments(
+        src_dir="src",
+        extra_data=["gbextradata"],
+        verbose=True,
+        pkg_dir=os.path.join("tests", "gbtestapp"),
+        sha=Arguments.OPTION_SHA_FILE, # should not create sha anyway
+        clean=False,
+        onedir=True,
+        with_latest=True
+    )
+    pg = PackageGenerator(args)
+    generated_okay = pg.generate()
+
+    assert generated_okay == EXIT_OKAY \
+        and os.path.isdir(pg.gen_file_w_path)
+
 @pytest.fixture
 def arguments():
     """Returns an Arguments instance using the included app"""
@@ -76,7 +95,7 @@ def arguments():
     )
 
 def test_generation(arguments):
-    """ Tests running the executable. """
+    """ Tests generating the executable. """
     pg = PackageGenerator(arguments)
     generated_okay = pg.generate()
 
@@ -125,7 +144,7 @@ def test_file_sha(arguments):
     correct app name and version.
     """
 
-    # get the sha256 hash from the json file    
+    # get the sha256 hash from the json file
     pg = PackageGenerator(arguments)
     generated_okay = pg.generate()
     if generated_okay == EXIT_OKAY:
@@ -163,7 +182,7 @@ def test_latest(latest_arguments):
     populated with standalone executable and SHA.
     """
 
-    
+
     pg = PackageGenerator(latest_arguments)
     generated_okay = pg.generate()
 
@@ -181,7 +200,7 @@ def test_latest(latest_arguments):
             'latest',
             latest_standalone + '*'
         ))
-        
+
         sha_file = pg.args.sha_format.format(
             an=pg.args.app_name,
             v='latest',
@@ -199,7 +218,7 @@ def test_latest(latest_arguments):
             and len(sa_files) > 0 \
             and len(sha_files) > 0
     else:
-        assert False    
+        assert False
 
 @pytest.fixture
 def defaults():
@@ -220,7 +239,7 @@ def test_name_format(defaults):
     assert defaults.name_format == '{an}-{v}-standalone-{os}-{m}'
 
 def test_sha_format(defaults):
-    assert defaults.sha_format == '{an}-{v}-sha256-{os}-{m}.json'    
+    assert defaults.sha_format == '{an}-{v}-sha256-{os}-{m}.json'
 
 def test_extra_data(defaults):
     assert defaults.extra_data is None
