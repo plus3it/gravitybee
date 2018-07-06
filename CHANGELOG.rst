@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+0.1.18 - 2018.07.05
+-------------------
+* [ENHANCEMENT] Add ``--onedir`` flag for improved debugging.
+
 0.1.17 - 2018.06.27
 -------------------
 * [BUG FIX] Compatibility issues with CentOS 6 resolved.
