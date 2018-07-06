@@ -34,7 +34,7 @@ import json
 from string import Template
 import hashlib
 
-__version__ = "0.1.17"
+__version__ = "0.1.18"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
 FILE_DIR = ".gravitybee"
@@ -64,6 +64,8 @@ class Arguments(object):
             should be included with the standalone application.
         work_dir: A str with a relative path of directory to be used
             by GravityBee for work files.
+        onedir: A bool indicating whether to package the application in
+            one directory. Default is not (i.e., package in one file).
         console_script: A str of the name of the first console script
             listed in setup.py or setup.cfg.
         app_version: A str of the version of the standalone
@@ -153,6 +155,14 @@ class Arguments(object):
             )
             raise FileExistsError
 
+        self.onedir = kwargs.get(
+            'onedir',
+            os.environ.get(
+                'GB_ONEDIR',
+                False
+            )
+        )
+
         self.staging_dir = kwargs.get(
             'staging_dir',
             os.environ.get(
@@ -215,6 +225,7 @@ class Arguments(object):
         gravitybee.verboseprint("name_format:",self.name_format)
         gravitybee.verboseprint("clean:",self.clean)
         gravitybee.verboseprint("work_dir:",self.work_dir)
+        gravitybee.verboseprint("onedir:",self.onedir)
         gravitybee.verboseprint("staging_dir:",self.staging_dir)
         gravitybee.verboseprint("with_latest:",self.with_latest)
         gravitybee.verboseprint("sha:",self.sha)
@@ -425,27 +436,33 @@ class PackageGenerator(object):
 
         gravitybee.verboseprint("Processing SHA256 hash info...")
 
-        self.file_sha = PackageGenerator.get_hash(self.gen_file_w_path)
-
-        if self.args.sha == Arguments.OPTION_SHA_FILE:
-
-            # in memory version of file contents
-            sha_dict = {}
-            sha_dict[self.gen_file] = self.file_sha
-
-            # file name
-            self.sha_file = self.args.sha_format.format(
-                an=self.args.app_name,
-                v=self.args.app_version,
-                os=self.args.operating_system,
-                m=self.args.machine_type
+        if self.args.onedir:
+            gravitybee.verboseprint(
+                "In onedir mode, no SHA256 hash can be created."
             )
+        else:
 
-            gravitybee.verboseprint("SHA256 hash file:", self.sha_file)
+            self.file_sha = PackageGenerator.get_hash(self.gen_file_w_path)
 
-            sha_file = open(self.sha_file, 'w')
-            sha_file.write(json.dumps(sha_dict))
-            sha_file.close()
+            if self.args.sha == Arguments.OPTION_SHA_FILE:
+
+                # in memory version of file contents
+                sha_dict = {}
+                sha_dict[self.gen_file] = self.file_sha
+
+                # file name
+                self.sha_file = self.args.sha_format.format(
+                    an=self.args.app_name,
+                    v=self.args.app_version,
+                    os=self.args.operating_system,
+                    m=self.args.machine_type
+                )
+
+                gravitybee.verboseprint("SHA256 hash file:", self.sha_file)
+
+                sha_file = open(self.sha_file, 'w')
+                sha_file.write(json.dumps(sha_dict))
+                sha_file.close()
 
 
     def _stage_artifacts(self):
@@ -491,7 +508,13 @@ class PackageGenerator(object):
 
             gravitybee.verboseprint("Copying to latest...")
 
-            shutil.copy2(self.gen_file_w_path, latest_dst)
+            if self.args.onedir:
+                shutil.copytree(
+                    self.gen_file_w_path, 
+                    os.path.join(latest_dst, self.gen_file)
+                )
+            else:
+                shutil.copy2(self.gen_file_w_path, latest_dst)
 
             latest_standalone_name = self.args.name_format.format(
                 an=self.args.app_name,
@@ -513,7 +536,8 @@ class PackageGenerator(object):
                 os.path.join(latest_dst, latest_standalone_name)
             )
 
-        if self.args.sha == Arguments.OPTION_SHA_FILE:
+        if self.args.sha == Arguments.OPTION_SHA_FILE \
+            and not self.args.onedir:
 
             gravitybee.verboseprint("Staging SHA hash artifact:", self.sha_file)
 
@@ -565,13 +589,17 @@ class PackageGenerator(object):
             gb_info['name_format'] = self.args.name_format
             gb_info['clean'] = self.args.clean
             gb_info['work_dir'] = self.args.work_dir
+            gb_info['onedir'] = self.args.onedir
             gb_info['staging_dir'] = self.args.staging_dir
             gb_info['with_latest'] = self.args.with_latest
             gb_info['gen_file'] = self.gen_file
             gb_info['gen_file_w_path'] = self.gen_file_w_path
-            gb_info['file_sha'] = self.file_sha
 
-            if self.args.sha == Arguments.OPTION_SHA_FILE:
+            if not self.args.onedir:
+                gb_info['file_sha'] = self.file_sha
+
+            if self.args.sha == Arguments.OPTION_SHA_FILE \
+                    and not self.args.onedir:
                 gb_info['sha_file'] = self.sha_file
                 gb_info['sha_file_w_path'] = self.sha_file_w_path
                 gb_info['sha_format'] = self.args.sha_format
@@ -609,7 +637,8 @@ class PackageGenerator(object):
                 + ") [GravityBee Build]"
             gb_files.append(gb_file)
 
-            if self.args.sha == Arguments.OPTION_SHA_FILE:
+            if self.args.sha == Arguments.OPTION_SHA_FILE \
+                    and not self.args.onedir:
 
                 sha_file_info = {}
                 sha_file_info['filename'] = self.sha_file
@@ -635,8 +664,12 @@ class PackageGenerator(object):
             # environs
             del gb_info['extra_data']
             del gb_info['name_format']
-            del gb_info['sha_format']
             del gb_info['clean']
+
+            try:
+                del gb_info['sha_format']
+            except KeyError:
+                pass
 
             gravitybee.verboseprint(
                 "Writing environ script:",
@@ -717,7 +750,7 @@ class PackageGenerator(object):
             'pyinstaller',
             '--noconfirm',
             #'--clean',
-            '--onefile',
+            #'--onedir', # added below
             '--name', self.standalone_name,
             '--paths', self.args.src_dir,
             '--additional-hooks-dir', self.args.work_dir,
@@ -738,6 +771,12 @@ class PackageGenerator(object):
             '--hidden-import', 'pkg_resources',
         ]
 
+        insert_point = commands.index('--noconfirm') + 1
+        if self.args.onedir:
+            commands[insert_point:insert_point] = ['--onedir', '--debug']
+        else:
+            commands[insert_point:insert_point] = ['--onefile']
+
         # get all the packages called for by package
         for pkg in gravitybee.pyppy.get_required():
             commands += [ '--hidden-import', pkg ]
@@ -755,7 +794,7 @@ class PackageGenerator(object):
         ]
 
         if self.args.operating_system != 'windows':
-            insert_point = commands.index('--onefile') + 1
+            insert_point = commands.index('--noconfirm') + 1
             commands[insert_point:insert_point] = ['--runtime-tmpdir', '.']
 
         gravitybee.verboseprint("PyInstaller commands:")

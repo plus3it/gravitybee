@@ -91,20 +91,30 @@ GB_SRC_DIR        --src-dir, -d         The relative path of the package contain
                                         *Default:* ``.``
 GB_PKG_DIR        --pkg-dir, -p         The relative or absolute path of the package
                                         containing your application.
-                                        This directory must contain a ``setup.py`` file.
+                                        This directory must contain a
+                                        ``setup.py`` file.
                                         *Default:* ``.``
 GB_VERBOSE        --verbose, -v         Flag for verbose mode.
 GB_EXTRA_DATA     --extra-data, -e      Relative to package directory, any extra
                                         directories or files that need
-                                        to be included, that wouldn't normally be
-                                        included as Python code. Can be used multiple
-                                        times.
+                                        to be included, that wouldn't normally
+                                        be included as Python code. Can be
+                                        used multiple times.
                                         *Default: None*
 GB_WORK_DIR       --work-dir, -w        Directory for use by GravityBee to build
                                         application. Cannot be an existing
-                                        directory as it will be deleted if the clean
+                                        directory as it will be deleted if the
+                                        clean
                                         option is used.
                                         *Default:* ``.gravitybee/build/<uuid>``
+GB_ONEDIR         --onedir              Instead of packaging into one file,
+                                        package in one directory. This option
+                                        is not compatible with producing a SHA
+                                        hash since a hash is produced on a
+                                        single file. This option may be useful
+                                        for debugging runtimes errors in built
+                                        applications.
+                                        *Default: Not*
 GB_CLEAN          --clean, -c           Flag indicating whether to
                                         clean up the work directory
                                         after

@@ -84,6 +84,14 @@ click.disable_unicode_literals_warning = True
     help="Relative path for work directory."
 )
 @click.option(
+    '--onedir', 
+    'onedir', 
+    default=False,
+    envvar='GB_ONEDIR',
+    is_flag=True,
+    help="Instead of packaging into one file, package in one directory."
+)
+@click.option(
     '--clean', 
     '-c', 
     'clean', 
