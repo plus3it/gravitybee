@@ -810,12 +810,10 @@ class PackageGenerator(object):
         ):
             if extra_package not in gravitybee.pyppy.get_required():
                 pyppyn.ConfigRep.install_package(extra_package)
-                #commands += [ '--hidden-import', extra_package ]
 
         for extra_module in list(
                 set(self.EXTRA_REQD_MODULES) | set(self.args.extra_modules)
         ):
-            #pyppyn.ConfigRep.import_module(extra_module)
             commands += [ '--hidden-import', extra_module ]
 
         commands += [
