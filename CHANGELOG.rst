@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+0.1.19 - 2018.07.11
+-------------------
+* [ENHANCEMENT] Add ``--extra-pkgs`` and ``--extra-modules`` options for
+  including additional packages and modules with standalone executables.
+
 0.1.18 - 2018.07.05
 -------------------
 * [ENHANCEMENT] Add ``--onedir`` flag for improved debugging.

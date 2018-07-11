@@ -161,6 +161,12 @@ GB_WITH_LATEST    --with-latest         Flag to indicate if GravityBee
                                         directory in the staging area
                                         with a copy of the artifacts.
                                         *Default: Not*
+GB_EXTRA_MODULES  --extra-modules       Any extra modules to be included with
+                                        the standalone executable.
+                                        *Default: None*
+GB_EXTRA_PKGS     --extra-pkgs          Any extra packages to be included with
+                                        the standalone executable.
+                                        *Default: None*
 ================  ==================    ==========================================
 
 

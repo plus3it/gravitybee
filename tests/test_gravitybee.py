@@ -82,6 +82,23 @@ def test_onedir():
     assert generated_okay == EXIT_OKAY \
         and os.path.isdir(pg.gen_file_w_path)
 
+# test extra_pkgs and extra_modules
+def test_extra_pkgs_modules():
+    """Makes sure everything works with an extra package and module."""
+    args = Arguments(
+        src_dir="src",
+        extra_data=["gbextradata"],
+        verbose=True,
+        pkg_dir=os.path.join("tests", "gbtestapp"),
+        clean=False,
+        extra_pkgs=["PyYAML"],
+        extra_modules=["yaml"],
+    )
+    pg = PackageGenerator(args)
+    generated_okay = pg.generate()
+
+    assert generated_okay == EXIT_OKAY
+
 @pytest.fixture
 def arguments():
     """Returns an Arguments instance using the included app"""

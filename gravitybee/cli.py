@@ -73,7 +73,25 @@ click.disable_unicode_literals_warning = True
     envvar='GB_EXTRA_DATA',
     multiple=True,
     help="Any extra data to be included with the "
-        + "standalone application. Can me used multiple times."
+        + "standalone application. Can be used multiple times."
+)
+@click.option(
+    '--extra-pkgs', 
+    'extra_pkgs', 
+    default=[],
+    envvar='GB_EXTRA_PKGS',
+    multiple=True,
+    help="Any extra package(s) to be included with the "
+        + "standalone application. Can be used multiple times."
+)
+@click.option(
+    '--extra-modules', 
+    'extra_modules', 
+    default=[],
+    envvar='GB_EXTRA_MODULES',
+    multiple=True,
+    help="Any extra module(s) to be included with the "
+        + "standalone application. Can be used multiple times."
 )
 @click.option(
     '--work-dir', 
