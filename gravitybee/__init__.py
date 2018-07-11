@@ -62,6 +62,10 @@ class Arguments(object):
             naming the standalone application.
         extra_data: A list of str providing any extra data that
             should be included with the standalone application.
+        extra_pkgs: A list of str with any extra packages the user wants to
+            include with the standalone.
+        extra_modules: A list of str with any extra modules the user wants to
+            include with the standalone.
         work_dir: A str with a relative path of directory to be used
             by GravityBee for work files.
         onedir: A bool indicating whether to package the application in
@@ -130,6 +134,16 @@ class Arguments(object):
             None
         )
 
+        self.extra_pkgs = kwargs.get(
+            'extra_pkgs',
+            []
+        )
+
+        self.extra_modules = kwargs.get(
+            'extra_modules',
+            []
+        )                
+
         self.dont_write_file = kwargs.get(
             'no_file',
             False
@@ -144,7 +158,11 @@ class Arguments(object):
             'work_dir',
             os.environ.get(
                 'GB_WORK_DIR',
-                os.path.join(gravitybee.FILE_DIR, 'build', uuid.uuid1().hex[:16])
+                os.path.join(
+                    gravitybee.FILE_DIR,
+                    'build',
+                    uuid.uuid1().hex[:16]
+                )
             )
         )
 
@@ -177,9 +195,14 @@ class Arguments(object):
         )
 
         # arguments that DO depend on pyppyn
-        gravitybee.pyppy = pyppyn.ConfigRep(setup_path=self.pkg_dir,verbose=gravitybee.verbose)
+        gravitybee.pyppy = pyppyn.ConfigRep(
+            setup_path=self.pkg_dir,
+            verbose=gravitybee.verbose
+        )
 
-        self.console_script = gravitybee.pyppy.get_config_attr('console_scripts')
+        self.console_script = gravitybee.pyppy.get_config_attr(
+            'console_scripts'
+        )
         self.app_version = gravitybee.pyppy.get_config_attr('version')
 
         # Initial values
@@ -323,8 +346,28 @@ class PackageGenerator(object):
     ENVIRON_SCRIPT_WIN_EXT = '.bat'
     ENVIRON_SCRIPT_POSIX_ENCODE = 'utf-8'
     ENVIRON_SCRIPT_WIN_ENCODE = 'cp1252'
-    EXTRA_PACKAGES = ['packaging']
-    EXTRA_MODULES = ['packaging', 'packaging.version', 'packaging.specifiers']
+
+    # 'html.parser' hidden import is introduced by botocore.
+    # We won't need this when this issue is resolved:
+    # https://github.com/pyinstaller/pyinstaller/issues/1844
+
+    # 'configparser' hidden import is also introduced by botocore.
+    # It appears to be related to this issue:
+    # https://github.com/pyinstaller/pyinstaller/issues/1935
+
+    EXTRA_REQD_PACKAGES = [
+        'packaging',
+        'configparser',
+    ]
+
+    EXTRA_REQD_MODULES = [
+        'packaging',
+        'configparser',
+        'packaging.version',
+        'packaging.specifiers',
+        'pkg_resources',
+        'html.parser',
+    ]
 
     @classmethod
     def get_hash(cls, filename):
@@ -411,12 +454,6 @@ class PackageGenerator(object):
         for package in gravitybee.pyppy.get_required():
             #datas += copy_metadata(pkg)
             hook += "\ndatas += copy_metadata('" + package + "')"
-
-
-        if self.args.operating_system == 'windows':
-            for extra_package in self.EXTRA_PACKAGES:
-                if extra_package not in gravitybee.pyppy.get_required():
-                    hook += "\ndatas += copy_metadata('" + extra_package + "')"
 
         hook += "\n"
 
@@ -510,7 +547,7 @@ class PackageGenerator(object):
 
             if self.args.onedir:
                 shutil.copytree(
-                    self.gen_file_w_path, 
+                    self.gen_file_w_path,
                     os.path.join(latest_dst, self.gen_file)
                 )
             else:
@@ -749,8 +786,6 @@ class PackageGenerator(object):
         commands = [
             'pyinstaller',
             '--noconfirm',
-            #'--clean',
-            #'--onedir', # added below
             '--name', self.standalone_name,
             '--paths', self.args.src_dir,
             '--additional-hooks-dir', self.args.work_dir,
@@ -758,17 +793,6 @@ class PackageGenerator(object):
             '--workpath', os.path.join(self.args.work_dir, 'build'),
             '--distpath', os.path.join(self.args.work_dir, 'dist'),
             '--hidden-import', self.args.pkg_name,
-            # This hidden import is introduced by botocore.
-            # We won't need this when this issue is resolved:
-            # https://github.com/pyinstaller/pyinstaller/issues/1844
-            '--hidden-import', 'html.parser',
-            # This hidden import is also introduced by botocore.
-            # It appears to be related to this issue:
-            # https://github.com/pyinstaller/pyinstaller/issues/1935
-            '--hidden-import', 'configparser',
-            #'--hidden-import', 'packaging', # was required by pyinstaller for a while
-            #'--hidden-import', 'packaging.specifiers', # was required by pyinstaller for a while
-            '--hidden-import', 'pkg_resources',
         ]
 
         insert_point = commands.index('--noconfirm') + 1
@@ -777,16 +801,21 @@ class PackageGenerator(object):
         else:
             commands[insert_point:insert_point] = ['--onefile']
 
-        # get all the packages called for by package
-        for pkg in gravitybee.pyppy.get_required():
-            commands += [ '--hidden-import', pkg ]
+        insert_point = commands.index('--noconfirm') + 1
+        if self.args.clean:
+            commands[insert_point:insert_point] = ['--clean']
 
-        for extra_package in self.EXTRA_PACKAGES:
+        for extra_package in list(
+                set(self.EXTRA_REQD_PACKAGES) | set(self.args.extra_pkgs)
+        ):
             if extra_package not in gravitybee.pyppy.get_required():
                 pyppyn.ConfigRep.install_package(extra_package)
+                #commands += [ '--hidden-import', extra_package ]
 
-        for extra_module in self.EXTRA_MODULES:
-            pyppyn.ConfigRep.import_module(extra_module)
+        for extra_module in list(
+                set(self.EXTRA_REQD_MODULES) | set(self.args.extra_modules)
+        ):
+            #pyppyn.ConfigRep.import_module(extra_module)
             commands += [ '--hidden-import', extra_module ]
 
         commands += [
