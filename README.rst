@@ -121,18 +121,30 @@ GB_CLEAN          --clean, -c           Flag indicating whether to
                                         the build.
                                         *Default: Not*
 GB_NAME_FORMAT    --name-format, -f     Format to be used in naming the standalone
-                                        application. Must include
+                                        application. Can include
                                         {an}, {v}, {os}, {m}
                                         for app name, version, os, and machine
                                         type respectively. On Windows, ``.exe``
                                         will be added automatidally.
                                         *Default:* ``{an}-{v}-standalone-{os}-{m}``
 GB_SHA_FORMAT     --sha-format          Format to be used in naming the SHA hash
-                                        file. Must include
+                                        file. Can include
                                         {an}, {v}, {os}, {m}
                                         for app name, version, os, and machine
                                         type respectively.
                                         *Default:* ``{an}-{v}-sha256-{os}-{m}.json``
+GB_LABEL_FORMAT   --label-format        Format to be used in labeling the standalone
+                                        application in `gravitybee-files.json`.
+                                        Can include {An},
+                                        {an}, {v}, {os}, {m}, and {ft}
+                                        for capitalized application
+                                        name, lowercase app name, version, OS,
+                                        machine, and file type ("Standalone
+                                        Executable" or
+                                        "Standalone Executable SHA256 Hash")
+                                        respectively. On Windows, ``.exe``
+                                        will be added automatically.
+                                        *Default:* ``{An} {v} {ft} for {os} [GravityBee Build]``
 GB_NO_FILE        --no-file             Flag indicating to not write
                                         the output files (see below).
                                         If the ``--sha`` option is used to
