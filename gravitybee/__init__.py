@@ -34,7 +34,7 @@ import json
 from string import Template
 import hashlib
 
-__version__ = "0.1.19"
+__version__ = "0.1.20"
 VERB_MESSAGE_PREFIX = "[GravityBee]"
 EXIT_OKAY = 0
 FILE_DIR = ".gravitybee"
@@ -129,6 +129,14 @@ class Arguments(object):
             )
         )
 
+        self.label_format = kwargs.get(
+            'label_format',
+            os.environ.get(
+                'GB_LABEL_FORMAT',
+                '{An} {v} {ft} for {os} [GravityBee Build]'
+            )
+        )
+
         self.extra_data = kwargs.get(
             'extra_data',
             None
@@ -142,7 +150,7 @@ class Arguments(object):
         self.extra_modules = kwargs.get(
             'extra_modules',
             []
-        )                
+        )
 
         self.dont_write_file = kwargs.get(
             'no_file',
@@ -667,11 +675,17 @@ class PackageGenerator(object):
                 gb_file['mime-type'] = 'application/vnd.microsoft.portable-executable'
             else:
                 gb_file['mime-type'] = 'application/x-executable'
-            gb_file['label'] = \
-                self.args.app_name \
-                + " Standalone Executable (" \
-                + self.gen_file \
-                + ") [GravityBee Build]"
+            os_label = self.args.operating_system.title()
+            if self.args.operating_system == 'osx':
+                os_label = self.args.operating_system.upper()
+            gb_file['label'] = self.args.label_format.format(
+                An=self.args.app_name.title(),
+                an=self.args.app_name,
+                v=self.args.app_version,
+                os=os_label,
+                m=self.args.machine_type,
+                ft="Standalone Executable"
+            )
             gb_files.append(gb_file)
 
             if self.args.sha == Arguments.OPTION_SHA_FILE \
@@ -681,9 +695,14 @@ class PackageGenerator(object):
                 sha_file_info['filename'] = self.sha_file
                 sha_file_info['path'] = self.sha_file_w_path
                 sha_file_info['mime-type'] = 'application/json'
-                sha_file_info['label'] = \
-                    "SHA256 Hash for " \
-                    + self.gen_file
+                sha_file_info['label'] = self.args.label_format.format(
+                    An=self.args.app_name.title(),
+                    an=self.args.app_name,
+                    v=self.args.app_version,
+                    os=os_label,
+                    m=self.args.machine_type,
+                    ft="Standalone Executable SHA256 Hash"
+                )
                 gb_files.append(sha_file_info)
 
             # write to disk
@@ -861,4 +880,3 @@ class PackageGenerator(object):
         self._write_info_files()    # write info (with paths from staging) and sha
         self._cleanup()
         return gravitybee.EXIT_OKAY
-

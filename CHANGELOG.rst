@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+0.1.20 - 2018.08.08
+-------------------
+* [ENHANCEMENT] Add ``--label-format`` option so that users can customize
+  the label displayed for their applications in `gravitybee-files.json`.
+
 0.1.19 - 2018.07.11
 -------------------
 * [ENHANCEMENT] Add ``--extra-pkgs`` and ``--extra-modules`` options for

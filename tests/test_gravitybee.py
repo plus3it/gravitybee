@@ -154,6 +154,35 @@ def test_filename_file(arguments):
     else:
         assert False
 
+def test_file_label():
+    """ Tests whether GravityBee writes correct label for standalone app in gravitybee-files.json. """
+
+    label_prefix = "GBTESTapp YO"
+    arguments = Arguments(
+        src_dir="src",
+        extra_data=["gbextradata"],
+        verbose=True,
+        pkg_dir=os.path.join("tests", "gbtestapp"),
+        sha=Arguments.OPTION_SHA_FILE,
+        clean=True,
+        label_format=label_prefix + " {v} {ft} for {os}"
+    )
+    pg = PackageGenerator(arguments)
+    generated_okay = pg.generate()
+    if generated_okay == EXIT_OKAY:
+        sa_file = open(
+            os.path.join(
+                FILE_DIR,
+                "gravitybee-files.json"
+            ), "r"
+        )
+        gb_files = json.loads(sa_file.read())
+        sa_file.close
+
+        assert gb_files[0]['label'].startswith(label_prefix)
+    else:
+        assert False
+
 def test_file_sha(arguments):
     """
     Checks the generated sha hash written to file with one that is
