@@ -1,18 +1,16 @@
 version: '{branch}-{build}'
-build: off
+build: "off"
 image: Visual Studio 2015
 cache:
   - '%LOCALAPPDATA%\pip\Cache'
 
 install:
-  # python envs
-  - mkdir C:\venv
-  - C:\Python36-x64\Scripts\virtualenv C:\venv
-  - C:\venv\Scripts\activate
-
-  - pip install --upgrade setuptools virtualenv wheel pytest
-  - pip install --editable .
-  - pip install --editable tests/gbtestapp
+  - pip install pipenv
+  - pipenv --python 3
+  - pipenv install
+  - pipenv install -e .
+  - pipenv install -e tests/gbtestapp
+  - pipenv install pytest
 
 test_script:
-  - pytest
+  - pipenv run pytest

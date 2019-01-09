@@ -1,17 +1,28 @@
 language: python
-python:
-  - "3.5"
-  - "3.6"
+matrix:
+  include:
+    - python: 3.5
+    - python: 3.6
+    - python: 3.7
+      dist: xenial
+      sudo: true
+
 install:
   - echo $PYTHONPATH
-  - pip install --editable .
-  - pip install --editable tests/gbtestapp
+  - pip install pipenv
+  - pipenv install
+  - pipenv install -e .
+  - pipenv install -e tests/gbtestapp
+  - pipenv install pylint flake8
 before_script:
   - |
     if [ "$TRAVIS_BRANCH" = "dev" ]; then
       sed -i -E "s/^(version = )(.*)/\1\2.$TRAVIS_BUILD_NUMBER/" $TRAVIS_BUILD_DIR/setup.cfg
     fi  
 script:
+  - pylint gravitybee
+  - pylint tests/*py
+  - flake8
   - pytest
 before_deploy:
   - |

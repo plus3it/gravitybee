@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """gravitybee cli."""
-import os
-import platform
 import sys
 
 import click
@@ -9,6 +7,7 @@ import click
 import gravitybee
 
 click.disable_unicode_literals_warning = True
+
 
 @click.command(context_settings=dict(
     ignore_unknown_options=True,
@@ -28,8 +27,7 @@ click.disable_unicode_literals_warning = True
     'pkg_name',
     default=None,
     envvar='GB_PKG_NAME',
-    help="The package name for the application you are "
-        + "building."
+    help="The package name for the application you are building."
 )
 @click.option(
     '--script',
@@ -38,7 +36,7 @@ click.disable_unicode_literals_warning = True
     default=None,
     envvar='GB_SCRIPT',
     help="Path to Python application script installed by "
-        + "pip in the virtual env."
+    + "pip in the virtual env."
 )
 @click.option(
     '--src-dir',
@@ -55,7 +53,7 @@ click.disable_unicode_literals_warning = True
     default=None,
     envvar='GB_PKG_DIR',
     help="Directory where setup.py for app lives "
-        + "(not for GravityBee).")
+    + "(not for GravityBee).")
 @click.option(
     '--verbose',
     '-v',
@@ -73,7 +71,7 @@ click.disable_unicode_literals_warning = True
     envvar='GB_EXTRA_DATA',
     multiple=True,
     help="Any extra data to be included with the "
-        + "standalone application. Can be used multiple times."
+    + "standalone application. Can be used multiple times."
 )
 @click.option(
     '--extra-pkgs',
@@ -82,7 +80,7 @@ click.disable_unicode_literals_warning = True
     envvar='GB_EXTRA_PKGS',
     multiple=True,
     help="Any extra package(s) to be included with the "
-        + "standalone application. Can be used multiple times."
+    + "standalone application. Can be used multiple times."
 )
 @click.option(
     '--extra-modules',
@@ -91,7 +89,7 @@ click.disable_unicode_literals_warning = True
     envvar='GB_EXTRA_MODULES',
     multiple=True,
     help="Any extra module(s) to be included with the "
-        + "standalone application. Can be used multiple times."
+    + "standalone application. Can be used multiple times."
 )
 @click.option(
     '--work-dir',
@@ -117,9 +115,9 @@ click.disable_unicode_literals_warning = True
     envvar='GB_CLEAN',
     is_flag=True,
     help="Whether or not to clean up work area. If used, "
-        + "the create standalone application will be placed in "
-        + "the directory where GravityBee is run. Otherwise, "
-        + "it is placed in the work_dir."
+    + "the create standalone application will be placed in "
+    + "the directory where GravityBee is run. Otherwise, "
+    + "it is placed in the work_dir."
 )
 @click.option(
     '--name-format',
@@ -128,9 +126,9 @@ click.disable_unicode_literals_warning = True
     default=None,
     envvar='GB_NAME_FORMAT',
     help="Format to be used in naming the standalone "
-        + "application. Can include {an}, {v}, {os}, {m} "
-        + "for app name, version, os, and machine type "
-        + "respectively."
+    + "application. Can include {an}, {v}, {os}, {m} "
+    + "for app name, version, os, and machine type "
+    + "respectively."
 )
 @click.option(
     '--sha-format',
@@ -138,9 +136,9 @@ click.disable_unicode_literals_warning = True
     default=None,
     envvar='GB_SHA_FORMAT',
     help="Format to be used in naming the SHA hash "
-        + "file. Can include {an}, {v}, {os}, {m} "
-        + "for app name, version, os, and machine type "
-        + "respectively."
+    + "file. Can include {an}, {v}, {os}, {m} "
+    + "for app name, version, os, and machine type "
+    + "respectively."
 )
 @click.option(
     '--label-format',
@@ -148,17 +146,17 @@ click.disable_unicode_literals_warning = True
     default=None,
     envvar='GB_LABEL_FORMAT',
     help="Format to be used in labeling generated files "
-        + "in `gravitybee-files.json`. "
-        + "Can include {An}, "
-        + "{an}, {v}, {os}, {m}, and {ft} "
-        + "for capitalized application "
-        + "name, lowercase app name, version, OS, "
-        + "machine, and file type ('Standalone "
-        + "Executable' or "
-        + "'Standalone Executable SHA256 Hash') "
-        + "respectively. On Windows, .exe "
-        + "will be added automatically. "
-        + "Default: {An} {v} {ft} for {os} [GravityBee Build]"
+    + "in `gravitybee-files.json`. "
+    + "Can include {An}, "
+    + "{an}, {v}, {os}, {m}, and {ft} "
+    + "for capitalized application "
+    + "name, lowercase app name, version, OS, "
+    + "machine, and file type ('Standalone "
+    + "Executable' or "
+    + "'Standalone Executable SHA256 Hash') "
+    + "respectively. On Windows, .exe "
+    + "will be added automatically. "
+    + "Default: {An} {v} {ft} for {os} [GravityBee Build]"
 )
 @click.option(
     '--no-file',
@@ -167,7 +165,7 @@ click.disable_unicode_literals_warning = True
     envvar='GB_NO_FILE',
     is_flag=True,
     help="Do not write gravitybee-files.json file with "
-        + "name of standalone."
+    + "name of standalone."
 )
 @click.option(
     '--sha',
@@ -195,13 +193,11 @@ click.disable_unicode_literals_warning = True
     is_flag=True,
     help="Whether to include a latest directory as part of staging."
 )
-
 def main(**kwargs):
     """Entry point for GravityBee CLI."""
-
     print("GravityBee CLI,", gravitybee.__version__)
 
     # Create an instance
     args = gravitybee.Arguments(**kwargs)
-    pg = gravitybee.PackageGenerator(args)
-    sys.exit(pg.generate())
+    package_generator = gravitybee.PackageGenerator(args)
+    sys.exit(package_generator.generate())
