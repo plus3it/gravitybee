@@ -7,15 +7,6 @@ packages using PyInstaller.
 The basic functionality of Gravity Bee was laid out by
 Nicholas Chammas (@nchammas) in a project called FlintRock.
 
-Attributes:
-    VERB_MESSAGE_PREFIX: A str that is displayed before verbose
-        messages.
-    verbose: A bool representing whether verbose mode is on.
-    pyppy: An instance of pyppyn.ConfigRep for gathering application
-        information.
-    verboseprint: A function that prints verbose messages if in
-        verbose mode.
-
 Example:
     Help using the gravitybee CLI can be found by typing the following::
 
@@ -23,81 +14,82 @@ Example:
 """
 
 import os
-import pyppyn
-import gravitybee
+from string import Template
+import json
+import hashlib
+import logging
+import logging.config
 import platform
 import shutil
 import subprocess
 import uuid
 import glob
-import json
-from string import Template
-import hashlib
+import pyppyn
 
-__version__ = "0.1.20"
-VERB_MESSAGE_PREFIX = "[GravityBee]"
+
+__version__ = "0.1.21"
 EXIT_OKAY = 0
+EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
 
-verbose = False
-pyppy = None
-verboseprint = lambda *a, **k: \
-    print(gravitybee.VERB_MESSAGE_PREFIX, *a, **k) \
-    if gravitybee.verbose else lambda *a, **k: None
+logging.config.fileConfig(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logging.conf'))
+logger = logging.getLogger(__name__)        # pylint: disable=invalid-name
 
 
-class Arguments(object):
+class Arguments():
     """
     A class representing the configuration information needed by the
     gravitybee.PackageGenerator class.
 
     Attributes:
-        clean: A bool indicating whether to clean temporary work from
-            the build when complete.
-        pkg_dir: A str with location of setup.py for the package to
-            be built into a standalone application.
-        src_dir: A str with relative path of directory with the
-            package source code (e.g., src)
-        name_format: A str that represents the format to be used in
-            naming the standalone application.
-        extra_data: A list of str providing any extra data that
-            should be included with the standalone application.
-        extra_pkgs: A list of str with any extra packages the user wants to
-            include with the standalone.
-        extra_modules: A list of str with any extra modules the user wants to
-            include with the standalone.
-        work_dir: A str with a relative path of directory to be used
-            by GravityBee for work files.
-        onedir: A bool indicating whether to package the application in
-            one directory. Default is not (i.e., package in one file).
-        console_script: A str of the name of the first console script
-            listed in setup.py or setup.cfg.
-        app_version: A str of the version of the standalone
-            application pulled from setup.py or setup.cfg.
-        app_name: A str with name of the application (which is not
-            the same as the file name) to be built.
-        pkg_name: A str of the name of the package containing the
-            application that will be built.
-        script_path: A str of the path the script installed by pip
-            when the application is installed.
+        flags: A dict of bools for flags including "clean" (T: whether to clean
+            after generation), "dont_write_file" (F: whether to write files),
+            "one_dir" (F: whether to package as a directory or app),
+            "with_latest" (F: whether to also create a "latest" dir).
+        directories: A dict of strings for directories used in generation
+            including "pkg" (where setup.py lives), "src" (path to source),
+            "work" (where work files will be put), "staging" (where artifacts
+            are staged).
+        formats: A dict of strings for output formats in the str.format()
+            notation including "name" (format used in naming generated
+            application), "sha" (format used in naming generated SHA file for
+            the application), "label" (format used for generated application's
+            label).
+        extra: A dict of strings for extra material to include with the
+            generated application including "data" (data to include), "pkgs"
+            (extra packages to include in the application), "modules" (extra
+            modules to include in the application).
+        info: A dict of strings with general information about the process
+            including "sha" (enumeration to specify creating a file with the
+            SHA hash or just include in output information), "console_scripts"
+            (where the existing app's console scripts are located),
+            "app_version" (the version of the app), "app_name" (name of the
+            app), "pkg_name" (name of the package the existing app lives in),
+            "script_path" (path to the script installed by pip),
+            "operating_system" (operating system currently running),
+            "machine_type" (machine type currently running).
+        pyppy: An instance of pyppyn.ConfigRep for gathering application
+            information.
     """
 
     OPTION_SHA_INFO = "info"
     OPTION_SHA_FILE = "file"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         """Instantiation"""
 
         # Remove unused options
-        empty_keys = [k for k,v in kwargs.items() if not v]
-        for k in empty_keys:
-            del kwargs[k]
+        empty_keys = [key for key, value in kwargs.items() if not value]
+        for key in empty_keys:
+            del kwargs[key]
 
         # arguments that do NOT depend on pyppyn
-        gravitybee.verbose = kwargs.get('verbose',False)
-        self.clean = kwargs.get('clean',False)
+        self.flags = {}
+        self.flags["clean"] = kwargs.get('clean', False)
 
-        self.pkg_dir = kwargs.get(
+        self.directories = {}
+        self.directories["pkg"] = kwargs.get(
             'pkg_dir',
             os.environ.get(
                 'GB_PKG_DIR',
@@ -105,7 +97,7 @@ class Arguments(object):
             )
         )
 
-        self.src_dir = kwargs.get(
+        self.directories["src"] = kwargs.get(
             'src_dir',
             os.environ.get(
                 'GB_SRC_DIR',
@@ -113,7 +105,8 @@ class Arguments(object):
             )
         )
 
-        self.name_format = kwargs.get(
+        self.formats = {}
+        self.formats["name"] = kwargs.get(
             'name_format',
             os.environ.get(
                 'GB_NAME_FORMAT',
@@ -121,7 +114,7 @@ class Arguments(object):
             )
         )
 
-        self.sha_format = kwargs.get(
+        self.formats["sha"] = kwargs.get(
             'sha_format',
             os.environ.get(
                 'GB_SHA_FORMAT',
@@ -129,7 +122,7 @@ class Arguments(object):
             )
         )
 
-        self.label_format = kwargs.get(
+        self.formats["label"] = kwargs.get(
             'label_format',
             os.environ.get(
                 'GB_LABEL_FORMAT',
@@ -137,51 +130,44 @@ class Arguments(object):
             )
         )
 
-        self.extra_data = kwargs.get(
+        self.extra = {}
+        self.extra["data"] = kwargs.get(
             'extra_data',
             None
         )
 
-        self.extra_pkgs = kwargs.get(
+        self.extra["pkgs"] = kwargs.get(
             'extra_pkgs',
             []
         )
 
-        self.extra_modules = kwargs.get(
+        self.extra["modules"] = kwargs.get(
             'extra_modules',
             []
         )
 
-        self.dont_write_file = kwargs.get(
+        self.flags["dont_write_file"] = kwargs.get(
             'no_file',
             False
         )
 
-        self.sha = kwargs.get(
-            'sha',
-            Arguments.OPTION_SHA_INFO
-        )
-
-        self.work_dir = kwargs.get(
+        self.directories["work"] = kwargs.get(
             'work_dir',
             os.environ.get(
                 'GB_WORK_DIR',
                 os.path.join(
-                    gravitybee.FILE_DIR,
+                    FILE_DIR,
                     'build',
                     uuid.uuid1().hex[:16]
                 )
             )
         )
 
-        if os.path.exists(self.work_dir):
-            print(
-                gravitybee.VERB_MESSAGE_PREFIX,
-                "ERROR: work_dir must not exist. It may be deleted."
-            )
+        if os.path.exists(self.directories["work"]):
+            logger.error("work_dir must not exist. It may be deleted.")
             raise FileExistsError
 
-        self.onedir = kwargs.get(
+        self.flags["one_dir"] = kwargs.get(
             'onedir',
             os.environ.get(
                 'GB_ONEDIR',
@@ -189,84 +175,94 @@ class Arguments(object):
             )
         )
 
-        self.staging_dir = kwargs.get(
+        self.directories["staging"] = kwargs.get(
             'staging_dir',
             os.environ.get(
                 'GB_STAGING_DIR',
-                os.path.join(gravitybee.FILE_DIR, 'dist')
+                os.path.join(FILE_DIR, 'dist')
             )
         )
 
-        self.with_latest = kwargs.get(
+        self.flags["with_latest"] = kwargs.get(
             'with_latest',
             False
         )
 
-        # arguments that DO depend on pyppyn
-        gravitybee.pyppy = pyppyn.ConfigRep(
-            setup_path=self.pkg_dir,
-            verbose=gravitybee.verbose
+        self.info = {}
+        self.info["sha"] = kwargs.get(
+            'sha',
+            Arguments.OPTION_SHA_INFO
         )
 
-        self.console_script = gravitybee.pyppy.get_config_attr(
+        # arguments that DO depend on pyppyn
+        self.pyppy = pyppyn.ConfigRep(
+            setup_path=self.directories["pkg"],
+            verbose=True
+        )
+
+        self.info["console_script"] = self.pyppy.get_config_attr(
             'console_scripts'
         )
-        self.app_version = gravitybee.pyppy.get_config_attr('version')
+        self.info["app_version"] = self.pyppy.get_config_attr('version')
 
         # Initial values
-        self.app_name = kwargs.get(
+        self.info["app_name"] = kwargs.get(
             'app_name',
             os.environ.get(
                 'GB_APP_NAME',
-                gravitybee.pyppy.app_name
+                self.pyppy.config['app_name']
             )
         )
 
-        self.pkg_name = kwargs.get(
+        self.info["pkg_name"] = kwargs.get(
             'pkg_name',
             os.environ.get(
                 'GB_PKG_NAME',
-                gravitybee.pyppy.get_config_attr('packages')
+                self.pyppy.get_config_attr('packages')
             )
         )
 
-        self.script_path = kwargs.get(
+        self.info["script_path"] = kwargs.get(
             'script_path',
             os.environ.get(
                 'GB_SCRIPT',
-                self._find_script()
+                self.find_script()
             )
         )
 
         pl_sys = platform.system().lower()
-        self.operating_system = pl_sys if pl_sys != 'darwin' else 'osx'
+        self.info["operating_system"] = pl_sys if pl_sys != 'darwin' else 'osx'
 
-        self.machine_type = platform.machine().lower()
+        self.info["machine_type"] = platform.machine().lower()
 
-        gravitybee.verboseprint("Arguments:")
-        gravitybee.verboseprint("app_name:",self.app_name)
-        gravitybee.verboseprint("app_version:",self.app_version)
-        gravitybee.verboseprint("operating_system:",self.operating_system)
-        gravitybee.verboseprint("machine_type:",self.machine_type)
-        gravitybee.verboseprint("console_script:",self.console_script)
-        gravitybee.verboseprint("pkg_name:",self.pkg_name)
-        gravitybee.verboseprint("script_path:",self.script_path)
-        gravitybee.verboseprint("pkg_dir:",self.pkg_dir)
-        gravitybee.verboseprint("src_dir:",self.src_dir)
-        gravitybee.verboseprint("name_format:",self.name_format)
-        gravitybee.verboseprint("clean:",self.clean)
-        gravitybee.verboseprint("work_dir:",self.work_dir)
-        gravitybee.verboseprint("onedir:",self.onedir)
-        gravitybee.verboseprint("staging_dir:",self.staging_dir)
-        gravitybee.verboseprint("with_latest:",self.with_latest)
-        gravitybee.verboseprint("sha:",self.sha)
+        self.run_info()
 
-        if self.extra_data is not None:
-            for extra_data in self.extra_data:
-                gravitybee.verboseprint("extra_data:",extra_data)
+    def run_info(self):
+        """Log all the attributes of this run."""
+        logger.info("Arguments:")
+        logger.info("app_name: %s", self.info["app_name"])
+        logger.info("app_version: %s", self.info["app_version"])
+        logger.info("operating_system: %s", self.info["operating_system"])
+        logger.info("machine_type: %s", self.info["machine_type"])
+        logger.info("console_script: %s", self.info["console_script"])
+        logger.info("pkg_name: %s", self.info["pkg_name"])
+        logger.info("script_path: %s", self.info["script_path"])
+        logger.info("pkg_dir: %s", self.directories["pkg"])
+        logger.info("src_dir: %s", self.directories["src"])
+        logger.info("name_format: %s", self.formats["name"])
+        logger.info("clean: %s", self.flags["clean"])
+        logger.info("work_dir: %s", self.directories["work"])
+        logger.info("onedir: %s", self.flags["one_dir"])
+        logger.info("staging_dir: %s", self.directories["staging"])
+        logger.info("with_latest: %s", self.flags["with_latest"])
+        logger.info("sha: %s", self.info["sha"])
 
-    def _find_script(self):
+        if self.extra["data"] is not None:
+            for extra_data in self.extra["data"]:
+                logger.info("extra_data: %s", extra_data)
 
+    def find_script(self):
+        """Search likely places to find the console script for app."""
         # Windows example: C:\venv\Scripts\<console-script>-script.py
 
         possible_paths = []
@@ -275,56 +271,59 @@ class Arguments(object):
         possible_paths.append(os.path.join(
             os.environ.get('VIRTUAL_ENV'),
             'bin',
-            self.console_script
+            self.info["console_script"]
         ))
 
         # likely windows
         possible_paths.append(os.path.join(
             os.environ.get('VIRTUAL_ENV'),
             'Scripts',
-            self.console_script + '-script.py'
+            self.info["console_script"] + '-script.py'
         ))
 
         # other windows
         possible_paths.append(os.path.join(
             os.environ.get('VIRTUAL_ENV'),
             'Scripts',
-            self.console_script + '.py'
+            self.info["console_script"] + '.py'
         ))
 
         # unlikely posix
         possible_paths.append(os.path.join(
             os.environ.get('VIRTUAL_ENV'),
             'bin',
-            self.console_script + '-script.py'
+            self.info["console_script"] + '-script.py'
         ))
 
         # without virtual env dir
         possible_paths.append(os.path.join(
             'bin',
-            self.console_script
+            self.info["console_script"]
         ))
 
         possible_paths.append(os.path.join(
             'bin',
-            self.console_script + '-script.py'
+            self.info["console_script"] + '-script.py'
         ))
 
         possible_paths.append(os.path.join(
             'Scripts',
-            self.console_script + '-script.py'
+            self.info["console_script"] + '-script.py'
         ))
 
         possible_paths.append(os.path.join(
             'Scripts',
-            self.console_script
+            self.info["console_script"]
         ))
 
         for path in possible_paths:
             if os.path.exists(path):
                 return path
 
-class PackageGenerator(object):
+        return None
+
+
+class PackageGenerator():
     """
     Utility for generating standalone executable versions of python
     programs that are already packaged in a standard setuptools
@@ -344,12 +343,14 @@ class PackageGenerator(object):
             application created.
         gen_file_w_path: A str with absolute path and name of file of
             the standalone application created.
+        sha_file: A str with name of file to use in generating the SHA.
+        file_sha: A str with hash of the sha_file file.
     """
 
     ENVIRON_PREFIX = 'GB_ENV_'
-    INFO_FILE = os.path.join(gravitybee.FILE_DIR, 'gravitybee-info.json')
-    FILES_FILE = os.path.join(gravitybee.FILE_DIR, 'gravitybee-files.json')
-    ENVIRON_SCRIPT = os.path.join(gravitybee.FILE_DIR, 'gravitybee-environs')
+    INFO_FILE = os.path.join(FILE_DIR, 'gravitybee-info.json')
+    FILES_FILE = os.path.join(FILE_DIR, 'gravitybee-files.json')
+    ENVIRON_SCRIPT = os.path.join(FILE_DIR, 'gravitybee-environs')
     ENVIRON_SCRIPT_POSIX_EXT = '.sh'
     ENVIRON_SCRIPT_WIN_EXT = '.bat'
     ENVIRON_SCRIPT_POSIX_ENCODE = 'utf-8'
@@ -388,46 +389,49 @@ class PackageGenerator(object):
 
         if os.path.exists(filename):
             sha256 = hashlib.sha256()
-            with open(filename, "rb") as f:
-                for chunk in iter(lambda: f.read(4096), b""):
+            with open(filename, "rb") as file_to_hash:
+                for chunk in iter(lambda: file_to_hash.read(4096), b""):
                     sha256.update(chunk)
             return sha256.hexdigest()
-        else:
-            return None
 
+        return None
 
     def __init__(self, args=None):
 
         self.args = args
 
-        self.gen_file = None            # not set until file is created
-        self.gen_file_w_path = None     # not set until file is created
-        self.sha_file = None            # not set until file is created
-        self.sha_file_w_path = None     # not set until file is created
+        self.files = {}
 
-        self.standalone_name = self.args.name_format.format(
-            an=self.args.app_name,
-            v=self.args.app_version,
-            os=self.args.operating_system,
-            m=self.args.machine_type
+        self.files["gen"] = None            # not set until file is created
+        self.files["gen_w_path"] = None     # not set until file is created
+        self.files["sha"] = None            # not set until file is created
+        self.files["sha_w_path"] = None     # not set until file is created
+        self.files["hook"] = None
+        self.file_sha = None
+
+        self.standalone_name = self.args.formats["name"].format(
+            an=self.args.info["app_name"],
+            v=self.args.info["app_version"],
+            os=self.args.info["operating_system"],
+            m=self.args.info["machine_type"]
         )
 
         self.gb_dir, self.gb_filename = os.path.split(__file__)
 
-        if not os.path.exists(self.args.work_dir):
-            os.makedirs(self.args.work_dir)
+        if not os.path.exists(self.args.directories["work"]):
+            os.makedirs(self.args.directories["work"])
 
-        if not os.path.exists(gravitybee.FILE_DIR):
-            os.makedirs(gravitybee.FILE_DIR)
+        if not os.path.exists(FILE_DIR):
+            os.makedirs(FILE_DIR)
 
         self._temp_script = os.path.join(
-            self.args.work_dir,
-            uuid.uuid1().hex[:16] + '_' + self.args.console_script + '.py'
+            self.args.directories["work"],
+            uuid.uuid1().hex[:16] + '_'
+            + self.args.info["console_script"] + '.py'
         )
 
-        gravitybee.verboseprint("Package generator:")
-        gravitybee.verboseprint("standalone_name:",self.standalone_name)
-
+        logger.info("Package generator:")
+        logger.info("standalone_name: %s", self.standalone_name)
 
     def _create_hook(self):
         # get the hook ready
@@ -441,273 +445,276 @@ class PackageGenerator(object):
             ).read()
         )
 
-        hook = template.safe_substitute({ 'app_name': self.args.app_name })
+        hook = template.safe_substitute(
+            {'app_name': self.args.info["app_name"]})
 
         # 1 - extra data
         hook += "# collection extra data, if any (using --extra-data option)"
-        try:
-            for data in self.args.extra_data:
-                hook += "\ndatas.append(('"
-                hook += self.args.pkg_dir + os.sep
-                if self.args.src_dir != '.':
-                    hook += self.args.src_dir + os.sep
-                hook += self.args.pkg_name + os.sep + data
-                hook += "', '" + self.args.pkg_name + "/" + data + "'))"
-                hook += "\n\n"
-        except:
-            pass
+        for data in self.args.extra["data"]:
+            hook += "\ndatas.append(('"
+            hook += self.args.directories["pkg"] + os.sep
+            if self.args.directories["src"] != '.':
+                hook += self.args.directories["src"] + os.sep
+            hook += self.args.info["pkg_name"] + os.sep + data
+            hook += "', '" + self.args.info["pkg_name"] + "/" + data + "'))"
+            hook += "\n\n"
 
         # 2 - package metadata
         hook += "# add dependency metadata"
-        for package in gravitybee.pyppy.get_required():
-            #datas += copy_metadata(pkg)
+        for package in self.args.pyppy.get_required():
+            # datas += copy_metadata(pkg)
             hook += "\ndatas += copy_metadata('" + package + "')"
 
         hook += "\n"
 
         # 3 - write file
-        self.hook_file = os.path.join(
-            self.args.work_dir,
-            "hook-" + self.args.pkg_name + ".py"
+        self.files["hook"] = os.path.join(
+            self.args.directories["work"],
+            "hook-" + self.args.info["pkg_name"] + ".py"
         )
-        f = open(self.hook_file, "w+")
-        f.write(hook)
-        f.close()
+        hook_file = open(self.files["hook"], "w+")
+        hook_file.write(hook)
+        hook_file.close()
 
-        gravitybee.verboseprint("Created hook file:",self.hook_file)
-
+        logger.info("Created hook file: %s", self.files["hook"])
 
     def _process_sha(self):
 
-        gravitybee.verboseprint("Processing SHA256 hash info...")
+        logger.info("Processing SHA256 hash info...")
 
-        if self.args.onedir:
-            gravitybee.verboseprint(
+        if self.args.flags["one_dir"]:
+            logger.info(
                 "In onedir mode, no SHA256 hash can be created."
             )
         else:
 
-            self.file_sha = PackageGenerator.get_hash(self.gen_file_w_path)
+            self.file_sha = PackageGenerator.get_hash(self.files["gen_w_path"])
 
-            if self.args.sha == Arguments.OPTION_SHA_FILE:
+            if self.args.info["sha"] == Arguments.OPTION_SHA_FILE:
 
                 # in memory version of file contents
                 sha_dict = {}
-                sha_dict[self.gen_file] = self.file_sha
+                sha_dict[self.files["gen"]] = self.file_sha
 
                 # file name
-                self.sha_file = self.args.sha_format.format(
-                    an=self.args.app_name,
-                    v=self.args.app_version,
-                    os=self.args.operating_system,
-                    m=self.args.machine_type
+                self.files["sha"] = self.args.formats["sha"].format(
+                    an=self.args.info["app_name"],
+                    v=self.args.info["app_version"],
+                    os=self.args.info["operating_system"],
+                    m=self.args.info["machine_type"]
                 )
 
-                gravitybee.verboseprint("SHA256 hash file:", self.sha_file)
+                logger.info("SHA256 hash file: %s", self.files["sha"])
 
-                sha_file = open(self.sha_file, 'w')
+                sha_file = open(self.files["sha"], 'w')
                 sha_file.write(json.dumps(sha_dict))
                 sha_file.close()
 
-
     def _stage_artifacts(self):
 
-        gravitybee.verboseprint("Staging artifacts...")
+        logger.info("Staging artifacts...")
 
         # create directories
-        if os.path.exists(self.args.staging_dir):
-            gravitybee.verboseprint("Removing staging directory:", self.args.staging_dir)
-            shutil.rmtree(self.args.staging_dir)
+        if os.path.exists(self.args.directories["staging"]):
+            logger.info(
+                "Removing staging directory: %s",
+                self.args.directories["staging"])
+            shutil.rmtree(self.args.directories["staging"])
 
-        os.makedirs(self.args.staging_dir)
+        os.makedirs(self.args.directories["staging"])
 
         # version-based dir
         version_dst = os.path.join(
-            self.args.staging_dir,
-            self.args.app_version
+            self.args.directories["staging"],
+            self.args.info["app_version"]
         )
         if not os.path.exists(version_dst):
             os.makedirs(version_dst)
 
-        shutil.move(self.gen_file_w_path, version_dst)
+        shutil.move(self.files["gen_w_path"], version_dst)
 
         # update path
-        self.gen_file_w_path = os.path.join(
+        self.files["gen_w_path"] = os.path.join(
             version_dst,
-            self.gen_file
+            self.files["gen"]
         )
 
-        gravitybee.verboseprint("Main artifact:", self.gen_file_w_path)
+        logger.info("Main artifact: %s", self.files["gen_w_path"])
 
         # dir just called 'latest'
-        if self.args.with_latest:
+        if self.args.flags["with_latest"]:
 
-            gravitybee.verboseprint("Creating latest dir...")
+            logger.info("Creating latest dir...")
 
             latest_dst = os.path.join(
-                self.args.staging_dir,
+                self.args.directories["staging"],
                 'latest'
             )
             if not os.path.exists(latest_dst):
                 os.makedirs(latest_dst)
 
-            gravitybee.verboseprint("Copying to latest...")
+            logger.info("Copying to latest...")
 
-            if self.args.onedir:
+            if self.args.flags["one_dir"]:
                 shutil.copytree(
-                    self.gen_file_w_path,
-                    os.path.join(latest_dst, self.gen_file)
+                    self.files["gen_w_path"],
+                    os.path.join(latest_dst, self.files["gen"])
                 )
             else:
-                shutil.copy2(self.gen_file_w_path, latest_dst)
+                shutil.copy2(self.files["gen_w_path"], latest_dst)
 
-            latest_standalone_name = self.args.name_format.format(
-                an=self.args.app_name,
+            latest_standalone_name = self.args.formats["name"].format(
+                an=self.args.info["app_name"],
                 v='latest',
-                os=self.args.operating_system,
-                m=self.args.machine_type
+                os=self.args.info["operating_system"],
+                m=self.args.info["machine_type"]
             )
 
-            if self.gen_file.endswith(".exe"):
+            if self.files["gen"].endswith(".exe"):
                 latest_standalone_name += ".exe"
 
             os.rename(
-                os.path.join(latest_dst, self.gen_file),
+                os.path.join(latest_dst, self.files["gen"]),
                 os.path.join(latest_dst, latest_standalone_name)
             )
 
-            gravitybee.verboseprint(
-                "Latest artifact:",
+            logger.info(
+                "Latest artifact: %s",
                 os.path.join(latest_dst, latest_standalone_name)
             )
 
-        if self.args.sha == Arguments.OPTION_SHA_FILE \
-            and not self.args.onedir:
+        if self.args.info["sha"] == Arguments.OPTION_SHA_FILE \
+                and not self.args.flags["one_dir"]:
 
-            gravitybee.verboseprint("Staging SHA hash artifact:", self.sha_file)
+            logger.info("Staging SHA hash artifact: %s", self.files["sha"])
 
-            shutil.move(self.sha_file, version_dst)
+            shutil.move(self.files["sha"], version_dst)
 
-            self.sha_file_w_path = os.path.join(
+            self.files["sha_w_path"] = os.path.join(
                 version_dst,
-                self.sha_file
+                self.files["sha"]
             )
 
-            gravitybee.verboseprint("SHA artifact:", self.sha_file_w_path)
+            logger.info("SHA artifact: %s", self.files["sha_w_path"])
 
-            if self.args.with_latest:
+            if self.args.flags["with_latest"]:
 
-                shutil.copy2(self.sha_file_w_path, latest_dst)
+                shutil.copy2(self.files["sha_w_path"], latest_dst)
 
-                latest_sha_file = self.args.sha_format.format(
-                    an=self.args.app_name,
+                latest_sha_file = self.args.formats["sha"].format(
+                    an=self.args.info["app_name"],
                     v='latest',
-                    os=self.args.operating_system,
-                    m=self.args.machine_type
+                    os=self.args.info["operating_system"],
+                    m=self.args.info["machine_type"]
                 )
 
                 os.rename(
-                    os.path.join(latest_dst, self.sha_file),
+                    os.path.join(latest_dst, self.files["sha"]),
                     os.path.join(latest_dst, latest_sha_file)
                 )
 
-                gravitybee.verboseprint(
-                    "Latest SHA artifact:",
+                logger.info(
+                    "Latest SHA artifact: %s",
                     os.path.join(latest_dst, latest_sha_file)
                 )
 
+    def _gather_info(self):
+        # GATHER INFO -------------------------------------------
+        gb_info = {}
+        gb_info['app_name'] = self.args.info["app_name"]
+        gb_info['app_version'] = self.args.info["app_version"]
+        gb_info['operating_system'] = self.args.info["operating_system"]
+        gb_info['machine_type'] = self.args.info["machine_type"]
+        gb_info['console_script'] = self.args.info["console_script"]
+        gb_info['script_path'] = self.args.info["script_path"]
+        gb_info['pkg_dir'] = self.args.directories["pkg"]
+        gb_info['src_dir'] = self.args.directories["src"]
+        gb_info['name_format'] = self.args.formats["name"]
+        gb_info['clean'] = self.args.flags["clean"]
+        gb_info['work_dir'] = self.args.directories["work"]
+        gb_info['onedir'] = self.args.flags["one_dir"]
+        gb_info['staging_dir'] = self.args.directories["staging"]
+        gb_info['with_latest'] = self.args.flags["with_latest"]
+        gb_info['gen_file'] = self.files["gen"]
+        gb_info['gen_file_w_path'] = self.files["gen_w_path"]
+
+        if not self.args.flags["one_dir"]:
+            gb_info['file_sha'] = self.file_sha
+
+        if self.args.info["sha"] == Arguments.OPTION_SHA_FILE \
+                and not self.args.flags["one_dir"]:
+            gb_info['sha_file'] = self.files["sha"]
+            gb_info['sha_file_w_path'] = self.files["sha_w_path"]
+            gb_info['sha_format'] = self.args.formats["sha"]
+
+        gb_info['extra_data'] = []
+
+        if self.args.extra["data"] is not None:
+            for extra_data in self.args.extra["data"]:
+                gb_info['extra_data'].append(extra_data)
+
+        # INFO file ---------------------------------------------
+        logger.info(
+            "Writing information file: %s",
+            PackageGenerator.INFO_FILE
+        )
+        info_file = open(PackageGenerator.INFO_FILE, 'w')
+        info_file.write(json.dumps(gb_info))
+        info_file.close()
+
+        return gb_info
 
     def _write_info_files(self):
 
-        if not self.args.dont_write_file:
+        if not self.args.flags["dont_write_file"]:
 
-            # GATHER INFO -------------------------------------------
-            gb_info = {}
-            gb_info['app_name'] = self.args.app_name
-            gb_info['app_version'] = self.args.app_version
-            gb_info['operating_system'] = self.args.operating_system
-            gb_info['machine_type'] = self.args.machine_type
-            gb_info['console_script'] = self.args.console_script
-            gb_info['script_path'] = self.args.script_path
-            gb_info['pkg_dir'] = self.args.pkg_dir
-            gb_info['src_dir'] = self.args.src_dir
-            gb_info['name_format'] = self.args.name_format
-            gb_info['clean'] = self.args.clean
-            gb_info['work_dir'] = self.args.work_dir
-            gb_info['onedir'] = self.args.onedir
-            gb_info['staging_dir'] = self.args.staging_dir
-            gb_info['with_latest'] = self.args.with_latest
-            gb_info['gen_file'] = self.gen_file
-            gb_info['gen_file_w_path'] = self.gen_file_w_path
-
-            if not self.args.onedir:
-                gb_info['file_sha'] = self.file_sha
-
-            if self.args.sha == Arguments.OPTION_SHA_FILE \
-                    and not self.args.onedir:
-                gb_info['sha_file'] = self.sha_file
-                gb_info['sha_file_w_path'] = self.sha_file_w_path
-                gb_info['sha_format'] = self.args.sha_format
-
-            gb_info['extra_data'] = []
-
-            if self.args.extra_data is not None:
-                for extra_data in self.args.extra_data:
-                    gb_info['extra_data'].append(extra_data)
-
-            # INFO file ---------------------------------------------
-            gravitybee.verboseprint(
-                "Writing information file:",
-                PackageGenerator.INFO_FILE
-            )
-            info_file = open(PackageGenerator.INFO_FILE,'w')
-            info_file.write(json.dumps(gb_info))
-            info_file.close()
+            gb_info = self._gather_info()
 
             # FILES file --------------------------------------------
 
             # create memory structure
             gb_files = []
             gb_file = {}
-            gb_file['filename'] = self.gen_file
-            gb_file['path'] = self.gen_file_w_path
-            if self.gen_file.endswith(".exe"):
-                gb_file['mime-type'] = 'application/vnd.microsoft.portable-executable'
+            gb_file['filename'] = self.files["gen"]
+            gb_file['path'] = self.files["gen_w_path"]
+            if self.files["gen"].endswith(".exe"):
+                gb_file['mime-type'] = \
+                    'application/vnd.microsoft.portable-executable'
             else:
                 gb_file['mime-type'] = 'application/x-executable'
-            os_label = self.args.operating_system.title()
-            if self.args.operating_system == 'osx':
-                os_label = self.args.operating_system.upper()
-            gb_file['label'] = self.args.label_format.format(
-                An=self.args.app_name.title(),
-                an=self.args.app_name,
-                v=self.args.app_version,
+            os_label = self.args.info["operating_system"].title()
+            if self.args.info["operating_system"] == 'osx':
+                os_label = self.args.info["operating_system"].upper()
+            gb_file['label'] = self.args.formats["label"].format(
+                An=self.args.info["app_name"].title(),
+                an=self.args.info["app_name"],
+                v=self.args.info["app_version"],
                 os=os_label,
-                m=self.args.machine_type,
+                m=self.args.info["machine_type"],
                 ft="Standalone Executable"
             )
             gb_files.append(gb_file)
 
-            if self.args.sha == Arguments.OPTION_SHA_FILE \
-                    and not self.args.onedir:
+            if self.args.info["sha"] == Arguments.OPTION_SHA_FILE \
+                    and not self.args.flags["one_dir"]:
 
                 sha_file_info = {}
-                sha_file_info['filename'] = self.sha_file
-                sha_file_info['path'] = self.sha_file_w_path
+                sha_file_info['filename'] = self.files["sha"]
+                sha_file_info['path'] = self.files["sha_w_path"]
                 sha_file_info['mime-type'] = 'application/json'
-                sha_file_info['label'] = self.args.label_format.format(
-                    An=self.args.app_name.title(),
-                    an=self.args.app_name,
-                    v=self.args.app_version,
+                sha_file_info['label'] = self.args.formats["label"].format(
+                    An=self.args.info["app_name"].title(),
+                    an=self.args.info["app_name"],
+                    v=self.args.info["app_version"],
                     os=os_label,
-                    m=self.args.machine_type,
+                    m=self.args.info["machine_type"],
                     ft="Standalone Executable SHA256 Hash"
                 )
                 gb_files.append(sha_file_info)
 
             # write to disk
-            gravitybee.verboseprint(
-                "Writing files file:",
+            logger.info(
+                "Writing files file: %s",
                 PackageGenerator.FILES_FILE
             )
             file_file = open(PackageGenerator.FILES_FILE, 'w')
@@ -727,76 +734,75 @@ class PackageGenerator(object):
             except KeyError:
                 pass
 
-            gravitybee.verboseprint(
-                "Writing environ script:",
-                PackageGenerator.ENVIRON_SCRIPT \
-                    + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
+            logger.info(
+                "Writing environ script: %s",
+                PackageGenerator.ENVIRON_SCRIPT
+                + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
             )
             shell = open(
-                PackageGenerator.ENVIRON_SCRIPT \
-                    + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT,
-                mode = 'w',
-                encoding = PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE
+                PackageGenerator.ENVIRON_SCRIPT
+                + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT,
+                mode='w',
+                encoding=PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE
             )
 
-            for k, v in gb_info.items():
+            for key, value in gb_info.items():
                 shell.write("export ")
-                shell.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
+                shell.write(PackageGenerator.ENVIRON_PREFIX + key.upper())
                 shell.write('="')
-                shell.write(str(v))
+                shell.write(str(value))
                 shell.write('"\n')
 
             shell.close()
 
-            gravitybee.verboseprint(
-                "Writing environ script:",
-                PackageGenerator.ENVIRON_SCRIPT \
-                    + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
+            logger.info(
+                "Writing environ script: %s%s",
+                PackageGenerator.ENVIRON_SCRIPT,
+                PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
             )
 
             bat = open(
-                PackageGenerator.ENVIRON_SCRIPT \
-                    + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT,
-                mode = 'w',
-                encoding = PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE
+                PackageGenerator.ENVIRON_SCRIPT
+                + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT,
+                mode='w',
+                encoding=PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE
             )
 
-            for k, v in gb_info.items():
+            for key, value in gb_info.items():
                 bat.write("set ")
-                bat.write(PackageGenerator.ENVIRON_PREFIX + k.upper())
+                bat.write(PackageGenerator.ENVIRON_PREFIX + key.upper())
                 bat.write("=")
-                bat.write(str(v))
+                bat.write(str(value))
                 bat.write("\r\n")
 
             bat.close()
 
-
     def _cleanup(self):
 
-        if self.args.clean:
-            gravitybee.verboseprint("Cleaning up...")
+        if self.args.flags["clean"]:
+            logger.info("Cleaning up...")
 
             # clean work dir
 
-            if os.path.isdir(self.args.work_dir):
-                gravitybee.verboseprint("Deleting working dir:", self.args.work_dir)
-                shutil.rmtree(self.args.work_dir)
-
+            if os.path.isdir(self.args.directories["work"]):
+                logger.info(
+                    "Deleting working dir: %s",
+                    self.args.directories["work"])
+                shutil.rmtree(self.args.directories["work"])
 
     def generate(self):
+        """Generate the standalone application."""
         self._create_hook()
 
         try:
-            shutil.copy2(self.args.script_path, self._temp_script)
+            shutil.copy2(self.args.info["script_path"], self._temp_script)
         except FileNotFoundError:
-            print(
-                gravitybee.VERB_MESSAGE_PREFIX,
-                "ERROR: GravityBee could not find your application's " +
-                "script in the virtual env that was installed by pip. " +
-                "Possible solutions:\n1. Run GravityBee in a virtual " +
-                "env;\n2. Point GravityBee to the script using the " +
-                "--script option;\n3. Install your application using " +
-                "pip;\n4. Make sure your application has a console " +
+            logger.error(
+                "application script not found: %s",
+                "\n1. Run GravityBee in a virtual env" +
+                "\n2. Use the --script option" +
+                "\n3. Install your application using pip" +
+                "\n4. Make sure your application has a console " +
                 "script entry in setup.py or setup.cfg."
             )
             self._cleanup()
@@ -806,77 +812,79 @@ class PackageGenerator(object):
             'pyinstaller',
             '--noconfirm',
             '--name', self.standalone_name,
-            '--paths', self.args.src_dir,
-            '--additional-hooks-dir', self.args.work_dir,
-            '--specpath', self.args.work_dir,
-            '--workpath', os.path.join(self.args.work_dir, 'build'),
-            '--distpath', os.path.join(self.args.work_dir, 'dist'),
-            '--hidden-import', self.args.pkg_name,
+            '--paths', self.args.directories["src"],
+            '--additional-hooks-dir', self.args.directories["work"],
+            '--specpath', self.args.directories["work"],
+            '--workpath', os.path.join(self.args.directories["work"], 'build'),
+            '--distpath', os.path.join(self.args.directories["work"], 'dist'),
+            '--hidden-import', self.args.info["pkg_name"],
         ]
 
         insert_point = commands.index('--noconfirm') + 1
-        if self.args.onedir:
+        if self.args.flags["one_dir"]:
             commands[insert_point:insert_point] = ['--onedir', '--debug']
         else:
             commands[insert_point:insert_point] = ['--onefile']
 
         insert_point = commands.index('--noconfirm') + 1
-        if self.args.clean:
+        if self.args.flags["clean"]:
             commands[insert_point:insert_point] = ['--clean']
 
         for extra_package in list(
-                set(self.EXTRA_REQD_PACKAGES) | set(self.args.extra_pkgs)
+                set(self.EXTRA_REQD_PACKAGES) | set(self.args.extra["pkgs"])
         ):
-            if extra_package not in gravitybee.pyppy.get_required():
+            if extra_package not in self.args.pyppy.get_required():
                 pyppyn.ConfigRep.install_package(extra_package)
 
         for extra_module in list(
-                set(self.EXTRA_REQD_MODULES) | set(self.args.extra_modules)
+                set(self.EXTRA_REQD_MODULES) | set(self.args.extra["modules"])
         ):
-            commands += [ '--hidden-import', extra_module ]
+            commands += ['--hidden-import', extra_module]
 
         commands += [
             self._temp_script
         ]
 
-        if self.args.operating_system != 'windows':
+        if self.args.info["operating_system"] != 'windows':
             insert_point = commands.index('--noconfirm') + 1
             commands[insert_point:insert_point] = ['--runtime-tmpdir', '.']
 
-        gravitybee.verboseprint("PyInstaller commands:")
-        gravitybee.verboseprint(*commands, sep=', ')
+        logger.info("PyInstaller commands:")
+        logger.info(", ".join(commands))
 
         subproc_args = {}
         subproc_args['check'] = True
 
-        if not gravitybee.verbose:
-            subproc_args['stdout'] = subprocess.PIPE
-            subproc_args['stderr'] = subprocess.PIPE
+        subproc_args['stdout'] = subprocess.PIPE
+        subproc_args['stderr'] = subprocess.PIPE
 
-        result = subprocess.run(
-            commands,
-            **subproc_args
-        )
+        result = None
 
-        # todo: add logging
-        # todo: add stdout, stderr to logging
-        # when not verbose, stdout is available here: result.stdout
-        # when not verbose, stderr is available here: result.stderr
+        try:
+            result = subprocess.run(commands, **subproc_args)
+        except subprocess.CalledProcessError:
+            logger.error("Non-zero exit code from pyinstaller")
+            return EXIT_NOT_OKAY
+
+        if result.stdout:
+            logger.debug(result.stdout.decode('utf-8'))
+
+        if result.stderr and result.stderr != result.stdout:
+            logger.error(result.stderr.decode('utf-8'))
 
         # get info about standalone binary
         for standalone in glob.glob(
-            os.path.join(
-                self.args.work_dir,
-                'dist',
-                self.standalone_name + '*'
-            )
-        ):
-            self.gen_file_w_path = standalone
-            self.gen_file = os.path.basename(self.gen_file_w_path)
-            gravitybee.verboseprint("Generated standalone file:", self.gen_file)
+                os.path.join(
+                    self.args.directories["work"],
+                    'dist',
+                    self.standalone_name + '*'
+                )):
+            self.files["gen_w_path"] = standalone
+            self.files["gen"] = os.path.basename(self.files["gen_w_path"])
+            logger.info("Generated standalone file: %s", self.files["gen"])
 
         self._process_sha()         # creates the sha files need for staging
         self._stage_artifacts()     # creates the file names needed to write
-        self._write_info_files()    # write info (with paths from staging) and sha
+        self._write_info_files()    # write info (with paths) and sha
         self._cleanup()
-        return gravitybee.EXIT_OKAY
+        return EXIT_OKAY

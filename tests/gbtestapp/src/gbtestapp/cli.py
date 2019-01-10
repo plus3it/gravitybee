@@ -4,6 +4,7 @@ import gbtestapp.gbextradata
 
 PREFIX = "[gbtestapp]"
 
+
 def main():
     print(PREFIX, "GravityBee Test App")
 

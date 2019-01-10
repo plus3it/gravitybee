@@ -1,6 +1,13 @@
 CHANGE LOG
 ==========
 
+0.1.21 - 2019.01.10
+-------------------
+* [ENHANCEMENT] Lint code to conform with pylint and flake8 and add them
+  Travis-CI tests.
+* [ENHANCEMENT] Use ``pipenv`` and a lock file for dependency management.
+* [ENHANCEMENT] Adjust for compatibility with Python 3.7.
+
 0.1.20 - 2018.08.08
 -------------------
 * [ENHANCEMENT] Add ``--label-format`` option so that users can customize
