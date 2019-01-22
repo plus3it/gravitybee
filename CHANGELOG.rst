@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+0.1.22 - 2019.01.22
+-------------------
+* [ENHANCEMENT] Pin Pip and Pytest versions, adding ``requirements.txt``.
+
 0.1.21 - 2019.01.10
 -------------------
 * [ENHANCEMENT] Lint code to conform with pylint and flake8 and add them

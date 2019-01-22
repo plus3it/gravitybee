@@ -27,7 +27,7 @@ import glob
 import pyppyn
 
 
-__version__ = "0.1.21"
+__version__ = "0.1.22"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
@@ -78,6 +78,10 @@ class Arguments():
 
     def __init__(self, **kwargs):
         """Instantiation"""
+
+        if not os.environ.get('VIRTUAL_ENV'):
+            logger.error("No virtual environment directory detected!")
+            raise NotADirectoryError
 
         # Remove unused options
         empty_keys = [key for key, value in kwargs.items() if not value]
