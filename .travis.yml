@@ -10,6 +10,7 @@ matrix:
 install:
   - echo $PYTHONPATH
   - pip install pipenv
+  - pipenv install -r requirements.txt
   - pipenv install
   - pipenv install -e .
   - pipenv install -e tests/gbtestapp

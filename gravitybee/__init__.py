@@ -27,7 +27,7 @@ import glob
 import pyppyn
 
 
-__version__ = "0.1.21"
+__version__ = "0.1.22"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"

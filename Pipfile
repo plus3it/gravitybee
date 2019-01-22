@@ -9,7 +9,7 @@ verify_ssl = true
 distlib = "*"
 setuptools = "*"
 click = "*"
-pyinstaller = "*"
 pyppyn = "*"
+pyinstaller = "*"
 
 [requires]
