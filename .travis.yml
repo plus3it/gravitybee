@@ -1,16 +1,59 @@
 language: python
+stages:
+  - lint
+  - test
+  - deploy
 python:
   - "3.5"
   - "3.6"
-matrix:
+stage: test
+cache: pip
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+install:
+  - pip install -r requirements-pip.txt
+  - pip install -r requirements-test.txt
+  - pip install --editable .
+  - pip install --editable tests/gbtestapp
+script:
+  - pytest
+jobs:
   include:
-    - os: osx
+    - stage: lint
+      python: 3.6
+      install:
+        - pip install -r requirements-pip.txt
+        - pip install -r requirements-lint.txt
+        - pip install --editable .
+      script:
+        - pylint gravitybee
+        - pylint tests/*py
+        - flake8
+    - stage: test
+      python: 3.7
+      dist: xenial
+    - stage: test
+      os: windows
+      language: sh
+      python: 3.7
+      before_install:
+        - choco install python3
+        - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+        - python -m pip install virtualenv
+        - virtualenv $HOME/venv
+        - source $HOME/venv/Scripts/activate
+      install:
+        - python -m pip install -r requirements-pip.txt
+        - python -m pip install -r requirements-test.txt
+        - pip install --editable .
+        - pip install --editable tests/gbtestapp
+    - stage: test
+      os: osx
       osx_image: xcode10.1
       language: sh
-      python: "3.7"
+      python: 3.7
       # Perform the manual steps on osx to install python3 and activate venv
       before_install:
-        - brew upgrade python3
         - python3 -m pip install virtualenv
         - virtualenv $HOME/venv -p python3
         - source $HOME/venv/bin/activate
@@ -23,72 +66,57 @@ matrix:
           - /usr/local/Homebrew/Library/Homebrew
           - /usr/local/Homebrew/Library/Taps
           - $HOME/.cache/pip
-    - os: windows
-      language: sh
-      python: "3.7"
-      before_install:
-        - choco install python3
-        - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
-        - python -m pip install virtualenv
-        - virtualenv $HOME/venv
-        - source $HOME/venv/Scripts/activate
-        - python -m pip install -r requirements-test.txt
-    # Obtain Python 3.7 from xenial as per https://github.com/travis-ci/travis-ci/issues/9815
-    - python: 3.7
-      dist: xenial
-cache: pip
-before_cache:
-  - rm -f $HOME/.cache/pip/log/debug.log
-install:
-  - pip install -U -r requirements-test.txt
-  - pip install --editable .
-  - pip install --editable tests/gbtestapp
-script:
-  - pylint gravitybee
-  - pylint tests/*py
-  - flake8
-  - pytest
-before_deploy:
-  - |
-    if [ "$TRAVIS_BRANCH" = "dev" ]; then
-      sed -i -E "s/^(version = )(.*)/\1\2.$TRAVIS_BUILD_NUMBER/" $TRAVIS_BUILD_DIR/setup.cfg
-    elif [ "$TRAVIS_BRANCH" = "master" ]; then
-      export RELEASE_VERSION=$(grep "version = " $TRAVIS_BUILD_DIR/setup.cfg | sed "s/version = //")
-      export RELEASE_BODY="* [gravitybee v$RELEASE_VERSION CHANGELOG](https://github.com/YakDriver/gravitybee/blob/$RELEASE_VERSION/CHANGELOG.rst)"
-    fi
-deploy:
-  - provider: pypi
-    server: https://test.pypi.org/legacy/
-    distributions: sdist bdist_wheel
-    user: YakDriver
-    password:
-      secure: EY+av4Xsm3mpihBphTNqLs3JRYe/N3pVQK52fJ5N0nIUon6dKZG6oyajOXCaBhw5nt6LW7OdJzvmaxXDhIzJTZAmy6cqXOTpFJ5LKdp2zaGvuSlSgXxD7mdHyzwIZVIipJYSjRC4FjTe0KNfy8p7SgLL+V0TC+PTogexixvQ8HIkUb7PXbnbZkgp5AbmsrWU3f3pVchWMc/7FofEGl0/nfPhkkoU2ypwY3EBZ8JFZmAcH8SRXnvaoOZVqn6npMOAeQ4ayt2j01xKxKgEkby9gA/XDczL7r32Y8UT1kqrCb+XLEgIMcqU4nq0G3LfaPz6RAKGKfX9GlKIB4BHLa99ddO6P1TxhCdWB37D0VDOTBou2fB2oJK1SZr73ID9a9qRyZ6MIB7f2bZdAeSmhq3Kgw8GF5ZNBtLUlBLuaK6UEUVqPffmC+1M88hgQKR+oA8fIbq4H6CgZ1ImeCk3w54yDX/d8s/ze7ZmYeJ0RskzfA1ZohzJqBasM1X+gCp9Du/h86BwjmrZWouT9D6ZgH+2gzZlHXCM46w3tybZjR32scW1/pK1m1z4R0aOmaOWzkz9Jt3u3K2SqJ8JMS+rzGlHb2PEiuGYAuY8D9dqJj0HaYTQkhP/zjPDt/OaN6ZcCbCWgc89uCieB9PW/To/u1YpEr6Rih+n0UPsj0em0dUOOoo=
-    skip_cleanup: true
-    skip_upload_docs: true
-    on:
-      branch: dev
-      repo: YakDriver/gravitybee
-      python: "3.6"
-  - provider: releases
-    name: $RELEASE_VERSION
-    tag_name: $RELEASE_VERSION
-    target_commitish: $TRAVIS_COMMIT
-    body: $RELEASE_BODY
-    draft: false
-    skip_cleanup: true
-    api_key:
-      secure: JJSYa9xwgEftw55Rx+Q7Y22QWy6PsOhXKR7F6PJQeT88wOm1puxq28e500uGrhA/XXz4/cLYS7dDs3k8a9O9hq27gGYIMqyeWOxvfLfxqMMj1dqGb7g326I8YgkumCZRZkw/ftNK0qdar1Mm7OGGFOyPLxj4MYssEo9mYJIrJsvXZndNQsmC0tQNkHQunaiXB8qtrvdSY6ct6dtU9HmN4T7Aw8djuMkcF3NRa28BwqydGHEuwpiV3Erq7CqySeG2N4TkCCUiLKEfwer4TIqmIjeMbQat07lW9wpAgNx2su1uRdZg/e3oK5YpiK8QEzLHCZ8Ws5k4t+6e6NDBf3C2ULAnEv1MQqD232saudMhzg5pj4a9F0Xn8l9Xxjpf3f5tTh5emdEKFQoEDJ9YMLrQs2qWzBOrx6T1rIrIgasnb1PjHAkpgTOcOsl8C0G3BAzcbK14jmnbUkkE1KqEygWnjoHDnwHJPxRDDykxg5cCpoW6gz17NOk+iXPLY+Ncqtt3DTZsyW9yBPVJTx0WG5eC0b7lfeFXasvWzEFTeuRDmNvuJDu1ywxE1OUZDPhELgpB+zdyfnZxNyq02BPPK+iW+NDvjF3yHgWTs209Dl9I85UzN6n0ahjnKB9gA2va1Yf/FbTHOj5qbL8MhJ51gYnrfnRjWuhIr0aabpz4hXWStP8=
-    on:
-      branch: master
-      repo: YakDriver/gravitybee
-      python: "3.6"
-  - provider: pypi
-    distributions: sdist bdist_wheel
-    user: YakDriver
-    password:
-      secure: PdolvzqnNYnFx5hyBXplvDKGg94oNRvcQPBlVAKmMg19gNt1RGuAGoi+A4PE0/ZpLd4RI282vDk8pa6tSD6fsVN+pWDYWOk27Uiipd6wIY1VpQlV+vb3p2t8ET6kk6FbYVZCumgHxsh9vZ3w2I3Oy8BOm4Ak1idnXIblv+Nrv+Lv7e6/22BmLIHEWH9QWhsmdltORNbxrlrLpv8gfDoPL142oc0teS72RTPymDANnD1KiufBPuRZ8C1XKoflDrJNWgQ+H7GT74wiZ3zMdQLB2N7nbQlz7qIhtJVW7rwy2tBVy6W3VbmD67HGLxWy6oeZyBExFzLoFMmVLoVwZoGoL/bWmOe2pnmVP7KmrKRSSDWhspimBXEuSYJGTJOh6+0MwvJL+dDagskStgNdp8qkbhllbFOFJxEjzM/XIBf3P7Knzcv6vcmOiNstLU7VeDrWgS9565LVC3h0hKDR+IH+lUR9eGFMfhVvo3jr0MzumJekjkLjDeIkg527JFZwAQOvAy1TyMpbho/F23+B7QRYjFUYODCXnpLDc1IXuJzjhkVNLA6sh+L2X/RZU2mP9RWHrULEyAEmUmLoaZlIzlp3WJWl0GZmUTkknh5yWclePU5KvseH83w7BwEJ3spbwA3G5OjDh6lgH0oFtY9yH4G+Eo4SJIrskEIjTDM0MfUXrD8=
-    skip_upload_docs: true
-    on:
-      tags: true
-      repo: YakDriver/gravitybee
-      python: "3.6"
+    - stage: deploy
+      if: branch = dev
+      python: 3.6
+      install:
+        - echo "Install"
+      script:
+        - sed -i -E "s/^(version = )(.*)/\1\2.$TRAVIS_BUILD_NUMBER/" $TRAVIS_BUILD_DIR/setup.cfg
+      deploy:
+        - provider: pypi
+          server: https://test.pypi.org/legacy/
+          distributions: sdist bdist_wheel
+          user: YakDriver
+          password:
+            secure: EY+av4Xsm3mpihBphTNqLs3JRYe/N3pVQK52fJ5N0nIUon6dKZG6oyajOXCaBhw5nt6LW7OdJzvmaxXDhIzJTZAmy6cqXOTpFJ5LKdp2zaGvuSlSgXxD7mdHyzwIZVIipJYSjRC4FjTe0KNfy8p7SgLL+V0TC+PTogexixvQ8HIkUb7PXbnbZkgp5AbmsrWU3f3pVchWMc/7FofEGl0/nfPhkkoU2ypwY3EBZ8JFZmAcH8SRXnvaoOZVqn6npMOAeQ4ayt2j01xKxKgEkby9gA/XDczL7r32Y8UT1kqrCb+XLEgIMcqU4nq0G3LfaPz6RAKGKfX9GlKIB4BHLa99ddO6P1TxhCdWB37D0VDOTBou2fB2oJK1SZr73ID9a9qRyZ6MIB7f2bZdAeSmhq3Kgw8GF5ZNBtLUlBLuaK6UEUVqPffmC+1M88hgQKR+oA8fIbq4H6CgZ1ImeCk3w54yDX/d8s/ze7ZmYeJ0RskzfA1ZohzJqBasM1X+gCp9Du/h86BwjmrZWouT9D6ZgH+2gzZlHXCM46w3tybZjR32scW1/pK1m1z4R0aOmaOWzkz9Jt3u3K2SqJ8JMS+rzGlHb2PEiuGYAuY8D9dqJj0HaYTQkhP/zjPDt/OaN6ZcCbCWgc89uCieB9PW/To/u1YpEr6Rih+n0UPsj0em0dUOOoo=
+          skip_cleanup: true
+          skip_upload_docs: true
+          on:
+            branch: dev
+    - stage: deploy
+      if: branch = master
+      python: 3.6
+      install:
+        - echo "Install"
+      script:
+        - export RELEASE_VERSION=$(grep "version = " $TRAVIS_BUILD_DIR/setup.cfg | sed "s/version = //")
+        - export RELEASE_BODY="* [gravitybee v$RELEASE_VERSION CHANGELOG](https://github.com/YakDriver/gravitybee/blob/$RELEASE_VERSION/CHANGELOG.rst)"
+      deploy:
+        - provider: releases
+          name: $RELEASE_VERSION
+          tag_name: $RELEASE_VERSION
+          target_commitish: $TRAVIS_COMMIT
+          body: $RELEASE_BODY
+          draft: false
+          skip_cleanup: true
+          api_key:
+            secure: JJSYa9xwgEftw55Rx+Q7Y22QWy6PsOhXKR7F6PJQeT88wOm1puxq28e500uGrhA/XXz4/cLYS7dDs3k8a9O9hq27gGYIMqyeWOxvfLfxqMMj1dqGb7g326I8YgkumCZRZkw/ftNK0qdar1Mm7OGGFOyPLxj4MYssEo9mYJIrJsvXZndNQsmC0tQNkHQunaiXB8qtrvdSY6ct6dtU9HmN4T7Aw8djuMkcF3NRa28BwqydGHEuwpiV3Erq7CqySeG2N4TkCCUiLKEfwer4TIqmIjeMbQat07lW9wpAgNx2su1uRdZg/e3oK5YpiK8QEzLHCZ8Ws5k4t+6e6NDBf3C2ULAnEv1MQqD232saudMhzg5pj4a9F0Xn8l9Xxjpf3f5tTh5emdEKFQoEDJ9YMLrQs2qWzBOrx6T1rIrIgasnb1PjHAkpgTOcOsl8C0G3BAzcbK14jmnbUkkE1KqEygWnjoHDnwHJPxRDDykxg5cCpoW6gz17NOk+iXPLY+Ncqtt3DTZsyW9yBPVJTx0WG5eC0b7lfeFXasvWzEFTeuRDmNvuJDu1ywxE1OUZDPhELgpB+zdyfnZxNyq02BPPK+iW+NDvjF3yHgWTs209Dl9I85UzN6n0ahjnKB9gA2va1Yf/FbTHOj5qbL8MhJ51gYnrfnRjWuhIr0aabpz4hXWStP8=
+          on:
+            branch: master
+    - stage: deploy
+      if: tag is present
+      python: 3.6
+      install:
+        - echo "Install"
+      script:
+        - echo "Script"
+      deploy:
+          - provider: pypi
+            distributions: sdist bdist_wheel
+            user: YakDriver
+            password:
+              secure: PdolvzqnNYnFx5hyBXplvDKGg94oNRvcQPBlVAKmMg19gNt1RGuAGoi+A4PE0/ZpLd4RI282vDk8pa6tSD6fsVN+pWDYWOk27Uiipd6wIY1VpQlV+vb3p2t8ET6kk6FbYVZCumgHxsh9vZ3w2I3Oy8BOm4Ak1idnXIblv+Nrv+Lv7e6/22BmLIHEWH9QWhsmdltORNbxrlrLpv8gfDoPL142oc0teS72RTPymDANnD1KiufBPuRZ8C1XKoflDrJNWgQ+H7GT74wiZ3zMdQLB2N7nbQlz7qIhtJVW7rwy2tBVy6W3VbmD67HGLxWy6oeZyBExFzLoFMmVLoVwZoGoL/bWmOe2pnmVP7KmrKRSSDWhspimBXEuSYJGTJOh6+0MwvJL+dDagskStgNdp8qkbhllbFOFJxEjzM/XIBf3P7Knzcv6vcmOiNstLU7VeDrWgS9565LVC3h0hKDR+IH+lUR9eGFMfhVvo3jr0MzumJekjkLjDeIkg527JFZwAQOvAy1TyMpbho/F23+B7QRYjFUYODCXnpLDc1IXuJzjhkVNLA6sh+L2X/RZU2mP9RWHrULEyAEmUmLoaZlIzlp3WJWl0GZmUTkknh5yWclePU5KvseH83w7BwEJ3spbwA3G5OjDh6lgH0oFtY9yH4G+Eo4SJIrskEIjTDM0MfUXrD8=
+            skip_upload_docs: true
+            on:
+              tags: true
