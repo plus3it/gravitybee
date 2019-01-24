@@ -1,6 +1,14 @@
 CHANGE LOG
 ==========
 
+0.1.23 - 2019.01.24
+-------------------
+* [FIX] Properly pin Pip so all dependencies are installed with pinned
+  Pip version.
+* [ENHANCEMENT] Restructure Travis CI linting, testing, deploying so
+  deploy only happens when other stages complete successfully.
+* [ENHANCEMENT] Improve speed of MacOS builds significantly.
+
 0.1.22 - 2019.01.22
 -------------------
 * [ENHANCEMENT] Pin Pip and Pytest versions, adding ``requirements.txt``.
@@ -28,20 +36,20 @@ CHANGE LOG
 
 0.1.17 - 2018.06.27
 -------------------
-* [BUG FIX] Compatibility issues with CentOS 6 resolved.
+* [FIX] Compatibility issues with CentOS 6 resolved.
 
 0.1.16 - 2018.06.21
 -------------------
-* [BUG FIX] Compatibility issues with Windows resolved.
+* [FIX] Compatibility issues with Windows resolved.
 
 0.1.15 - 2018.06.06
 -------------------
-* [BUG FIX] Losing ``.exe`` extension with Windows executables in the
+* [FIX] Losing ``.exe`` extension with Windows executables in the
   latest staging area.
 
 0.1.14 - 2018.06.04
 -------------------
-* [BUG FIX] ``--with-latest`` was not working as a CL flag.
+* [FIX] ``--with-latest`` was not working as a CL flag.
 
 0.1.13 - 2018.06.04
 -------------------
@@ -99,7 +107,7 @@ CHANGE LOG
 
 0.1.7 - 2018.05.11
 ------------------
-* [BUG FIX] Fix exit code (was returning True).
+* [FIX] Fix exit code (was returning True).
 * [ENHANCEMENT] Automatically find console script installed by
   setuptools on Windows and Linux and variety of places.
 
@@ -121,11 +129,11 @@ CHANGE LOG
 0.1.2 - 2018.04.27
 ------------------
 * [ENHANCEMENT] Provide standalone file and path.
-* [BUG FIX] Path bug.
+* [FIX] Path bug.
 
 0.1.1 - 2018.04.26
 ------------------
-* [BUG FIX] Many bug fixes.
+* [FIX] Many bug fixes.
 
 0.1.0 - 2018.04.20
 ------------------
