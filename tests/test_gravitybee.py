@@ -67,28 +67,6 @@ def test_no_output_but_sha():
         and os.path.exists(package_generator.files["sha_w_path"])
 
 
-# see if generated "file" is actually a dir instead
-# pyinstaller has an error preventing this from working on Windows
-'''
-def test_onedir():
-    """Makes sure everything works in onedir mode."""
-    args = Arguments(
-        src_dir="src",
-        extra_data=["gbextradata"],
-        verbose=True,
-        pkg_dir=os.path.join("tests", "gbtestapp"),
-        sha=Arguments.OPTION_SHA_FILE,      # should not create sha anyway
-        clean=False,
-        onedir=True,
-    )
-    package_generator = PackageGenerator(args)
-    generated_okay = package_generator.generate()
-
-    assert generated_okay == EXIT_OKAY \
-        and os.path.isdir(package_generator.files["gen_w_path"])
-'''   # pylint: disable=pointless-string-statement
-
-
 # test extra_pkgs and extra_modules
 def test_extra_pkgs_modules():
     """Makes sure everything works with an extra package and module."""

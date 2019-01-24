@@ -1,24 +1,48 @@
 language: python
+python:
+  - "3.5"
+  - "3.6"
 matrix:
   include:
-    - python: 3.5
-    - python: 3.6
+    - os: osx
+      osx_image: xcode10.1
+      language: sh
+      python: "3.7"
+      # Perform the manual steps on osx to install python3 and activate venv
+      before_install:
+        - brew upgrade python3
+        - python3 -m pip install virtualenv
+        - virtualenv $HOME/venv -p python3
+        - source $HOME/venv/bin/activate
+      before_cache:
+        - brew cleanup
+        - rm -f $HOME/.cache/pip/log/debug.log
+      cache:
+        directories:
+          - $HOME/Library/Caches/Homebrew
+          - /usr/local/Homebrew/Library/Homebrew
+          - /usr/local/Homebrew/Library/Taps
+          - $HOME/.cache/pip
+    - os: windows
+      language: sh
+      python: "3.7"
+      before_install:
+        - choco install python3
+        - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+        - python -m pip install virtualenv
+        - virtualenv $HOME/venv
+        - source $HOME/venv/Scripts/activate
+        - python -m pip install -r requirements-test.txt
+    # Obtain Python 3.7 from xenial as per https://github.com/travis-ci/travis-ci/issues/9815
     - python: 3.7
       dist: xenial
-      sudo: true
-
+cache: pip
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
 install:
-  - echo $PYTHONPATH
-  - pip install pipenv
-  - pipenv install
-  - pipenv install -e .
-  - pipenv install -e tests/gbtestapp
-  - pipenv install pylint flake8
-before_script:
-  - |
-    if [ "$TRAVIS_BRANCH" = "dev" ]; then
-      sed -i -E "s/^(version = )(.*)/\1\2.$TRAVIS_BUILD_NUMBER/" $TRAVIS_BUILD_DIR/setup.cfg
-    fi  
+  - pip install -U -r requirements-test.txt
+  - pip install --editable .
+  - pip install --editable tests/gbtestapp
 script:
   - pylint gravitybee
   - pylint tests/*py
@@ -26,7 +50,9 @@ script:
   - pytest
 before_deploy:
   - |
-    if [ "$TRAVIS_BRANCH" = "master" ]; then
+    if [ "$TRAVIS_BRANCH" = "dev" ]; then
+      sed -i -E "s/^(version = )(.*)/\1\2.$TRAVIS_BUILD_NUMBER/" $TRAVIS_BUILD_DIR/setup.cfg
+    elif [ "$TRAVIS_BRANCH" = "master" ]; then
       export RELEASE_VERSION=$(grep "version = " $TRAVIS_BUILD_DIR/setup.cfg | sed "s/version = //")
       export RELEASE_BODY="* [gravitybee v$RELEASE_VERSION CHANGELOG](https://github.com/YakDriver/gravitybee/blob/$RELEASE_VERSION/CHANGELOG.rst)"
     fi
