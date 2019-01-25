@@ -58,7 +58,6 @@ jobs:
         - virtualenv $HOME/venv -p python3
         - source $HOME/venv/bin/activate
       before_cache:
-        - brew cleanup
         - rm -f $HOME/.cache/pip/log/debug.log
       cache:
         directories:
