@@ -11,8 +11,8 @@ cache: pip
 before_cache:
   - rm -f $HOME/.cache/pip/log/debug.log
 install:
-  - pip install -r requirements-pip.txt
-  - pip install -r requirements-test.txt
+  - pip install -r requirements/pip.txt
+  - pip install -r requirements/test.txt
   - pip install --editable .
   - pip install --editable tests/gbtestapp
 script:
@@ -22,8 +22,8 @@ jobs:
     - stage: lint
       python: 3.6
       install:
-        - pip install -r requirements-pip.txt
-        - pip install -r requirements-lint.txt
+        - pip install -r requirements/pip.txt
+        - pip install -r requirements/lint.txt
         - pip install --editable .
       script:
         - pylint gravitybee
@@ -43,8 +43,8 @@ jobs:
         - virtualenv $HOME/venv
         - source $HOME/venv/Scripts/activate
       install:
-        - python -m pip install -r requirements-pip.txt
-        - python -m pip install -r requirements-test.txt
+        - python -m pip install -r requirements/pip.txt
+        - python -m pip install -r requirements/test.txt
         - pip install --editable .
         - pip install --editable tests/gbtestapp
     - stage: test
