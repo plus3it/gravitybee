@@ -1,5 +1,0 @@
-pip==18.1
-pytest==4.1.1
-flake8==3.6.0
-pylint==2.2.2
-wheel==0.32.3

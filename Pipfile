@@ -10,6 +10,6 @@ distlib = "==0.2.8"
 setuptools = "==40.6.3"
 click = "==7.0"
 PyInstaller = "==3.4"
-pyppyn = "==0.3.7"
+pyppyn = "==0.3.8"
 
 [requires]
