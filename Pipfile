@@ -4,6 +4,9 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+flake8 = "==3.6.0"
+pylint = "==2.2.2"
+pytest = "==4.1.1"
 
 [packages]
 distlib = "==0.2.8"

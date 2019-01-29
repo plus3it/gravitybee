@@ -17,7 +17,6 @@ def test_no_output():
     args = Arguments(
         src_dir="src",
         extra_data=["gbextradata"],
-        verbose=True,
         pkg_dir=os.path.join("tests", "gbtestapp"),
         clean=True,
         no_file=True
@@ -48,7 +47,6 @@ def test_no_output_but_sha():
     args = Arguments(
         src_dir="src",
         extra_data=["gbextradata"],
-        verbose=True,
         pkg_dir=os.path.join("tests", "gbtestapp"),
         sha=Arguments.OPTION_SHA_FILE,
         clean=True,
@@ -73,7 +71,6 @@ def test_extra_pkgs_modules():
     args = Arguments(
         src_dir="src",
         extra_data=["gbextradata"],
-        verbose=True,
         pkg_dir=os.path.join("tests", "gbtestapp"),
         clean=False,
         extra_pkgs=["PyYAML"],
@@ -91,7 +88,6 @@ def arguments():
     return Arguments(
         src_dir="src",
         extra_data=["gbextradata"],
-        verbose=True,
         pkg_dir=os.path.join("tests", "gbtestapp"),
         sha=Arguments.OPTION_SHA_FILE,
         clean=True
@@ -154,7 +150,6 @@ def test_file_label():
     arguments = Arguments(
         src_dir="src",
         extra_data=["gbextradata"],
-        verbose=True,
         pkg_dir=os.path.join("tests", "gbtestapp"),
         sha=Arguments.OPTION_SHA_FILE,
         clean=True,
@@ -210,7 +205,6 @@ def latest_arguments():
     return Arguments(
         src_dir="src",
         extra_data=["gbextradata"],
-        verbose=True,
         pkg_dir=os.path.join("tests", "gbtestapp"),
         sha=Arguments.OPTION_SHA_FILE,
         clean=True,
