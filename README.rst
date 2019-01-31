@@ -2,11 +2,11 @@
 GravityBee
 ==========
 
-.. image:: https://img.shields.io/github/license/YakDriver/gravitybee.svg
+.. image:: https://img.shields.io/github/license/plus3it/gravitybee.svg
     :target: ./LICENSE
     :alt: License
-.. image:: https://travis-ci.org/YakDriver/gravitybee.svg?branch=master
-    :target: http://travis-ci.org/YakDriver/gravitybee
+.. image:: https://travis-ci.org/plus3it/gravitybee.svg?branch=master
+    :target: http://travis-ci.org/plus3it/gravitybee
     :alt: Build Status
 .. image:: https://img.shields.io/pypi/pyversions/gravitybee.svg
     :target: https://pypi.python.org/pypi/gravitybee
@@ -29,7 +29,7 @@ These are some benefits of a GravityBee standalone application:
 * You build separate natively executable applications for each of
   your target platforms.
 
-GravityBee depends on `Pyppyn <https://github.com/YakDriver/pyppyn>`_ and
+GravityBee depends on `Pyppyn <https://github.com/plus3it/pyppyn>`_ and
 `PyInstaller <http://www.pyinstaller.org>`_ and is subject to their limitations.
 
 To Build A Standalone Application
@@ -65,6 +65,8 @@ values. You can provide values either through environment variables
 or command line flags. If both are
 provided, command line flags take precedence.
 
+Local logging can be configured in ``gravitybee/logging.conf``.
+
 Options:
 
 ================  ==================    ==========================================
@@ -94,7 +96,6 @@ GB_PKG_DIR        --pkg-dir, -p         The relative or absolute path of the pac
                                         This directory must contain a
                                         ``setup.py`` file.
                                         *Default:* ``.``
-GB_VERBOSE        --verbose, -v         Flag for verbose mode.
 GB_EXTRA_DATA     --extra-data, -e      Relative to package directory, any extra
                                         directories or files that need
                                         to be included, that wouldn't normally
@@ -241,7 +242,7 @@ The Test Example
 ----------------
 
 Here is the file/package structure of the included
-`test application <https://github.com/YakDriver/gravitybee/tree/dev/tests/gbtestapp>`_.
+`test application <https://github.com/plus3it/gravitybee/tree/dev/tests/gbtestapp>`_.
 
 .. code-block:: bash
 
@@ -265,7 +266,7 @@ directory (``gbextradata``).
 .. code-block:: bash
 
     $ cd gbtestapp
-    $ gravitybee --src-dir src --extra-data gbextradata --verbose --clean
+    $ gravitybee --src-dir src --extra-data gbextradata --clean
 
 
 From Python Example
@@ -281,7 +282,6 @@ sample test app, here's some example code.
     args = gravitybee.Arguments(
         src_dir="src",
         extra_data=["gbextradata"],
-        verbose=True,
         pkg_dir=os.path.join("tests", "gbtestapp"),
         clean=True
     )
@@ -303,8 +303,8 @@ and his project `flintrock <https://github.com/nchammas/flintrock>`_. Huge thank
 Contribute
 ==========
 
-GravityBee is hosted on `GitHub <http://github.com/YakDriver/gravitybee>`_ and is an open source project that welcomes contributions of all kinds from the community.
+GravityBee is hosted on `GitHub <http://github.com/plus3it/gravitybee>`_ and is an open source project that welcomes contributions of all kinds from the community.
 
-For more information about contributing, see `the contributor guidelines <https://github.com/YakDriver/gravitybee/CONTRIBUTING.rst>`_.
+For more information about contributing, see `the contributor guidelines <https://github.com/plus3it/gravitybee/CONTRIBUTING.rst>`_.
 
 

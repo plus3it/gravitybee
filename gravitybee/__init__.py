@@ -27,7 +27,7 @@ import glob
 import pyppyn
 
 
-__version__ = "0.1.23"
+__version__ = "0.1.24"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
@@ -200,8 +200,7 @@ class Arguments():
 
         # arguments that DO depend on pyppyn
         self.pyppy = pyppyn.ConfigRep(
-            setup_path=self.directories["pkg"],
-            verbose=True
+            setup_path=self.directories["pkg"]
         )
 
         self.info["console_script"] = self.pyppy.get_config_attr(

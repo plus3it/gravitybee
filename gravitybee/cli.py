@@ -55,15 +55,6 @@ click.disable_unicode_literals_warning = True
     help="Directory where setup.py for app lives "
     + "(not for GravityBee).")
 @click.option(
-    '--verbose',
-    '-v',
-    'verbose',
-    default=False,
-    envvar='GB_VERBOSE',
-    is_flag=True,
-    help="Verbose mode."
-)
-@click.option(
     '--extra-data',
     '-e',
     'extra_data',
