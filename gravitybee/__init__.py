@@ -27,7 +27,7 @@ import glob
 import pyppyn
 
 
-__version__ = "0.1.24"
+__version__ = "0.1.25"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
@@ -370,6 +370,7 @@ class PackageGenerator():
     EXTRA_REQD_PACKAGES = [
         'packaging',
         'configparser',
+        'setuptools'
     ]
 
     EXTRA_REQD_MODULES = [
@@ -379,6 +380,7 @@ class PackageGenerator():
         'packaging.specifiers',
         'pkg_resources',
         'html.parser',
+        'distutils'
     ]
 
     @classmethod
