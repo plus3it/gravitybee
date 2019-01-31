@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+0.1.24 - 2019.01.29
+-------------------
+* [ENHANCEMENT] Clean up code, add community docs.
+* [ENHANCEMENT] Transfer to Plus3IT.
+
 0.1.23 - 2019.01.24
 -------------------
 * [FIX] Properly pin Pip so all dependencies are installed with pinned
