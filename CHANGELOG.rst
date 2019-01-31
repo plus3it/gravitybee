@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+0.1.25 - 2019.01.31
+-------------------
+* [ENHANCEMENT] Add distutils to builds.
+
 0.1.24 - 2019.01.29
 -------------------
 * [ENHANCEMENT] Clean up code, add community docs.
