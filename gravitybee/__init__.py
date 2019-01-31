@@ -370,6 +370,7 @@ class PackageGenerator():
     EXTRA_REQD_PACKAGES = [
         'packaging',
         'configparser',
+        'setuptools'
     ]
 
     EXTRA_REQD_MODULES = [
@@ -379,6 +380,7 @@ class PackageGenerator():
         'packaging.specifiers',
         'pkg_resources',
         'html.parser',
+        'distutils'
     ]
 
     @classmethod
