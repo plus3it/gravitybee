@@ -65,7 +65,7 @@ values. You can provide values either through environment variables
 or command line flags. If both are
 provided, command line flags take precedence.
 
-Local logging can be configured in ``pyppyn/logging.conf``.
+Local logging can be configured in ``gravitybee/logging.conf``.
 
 Options:
 
