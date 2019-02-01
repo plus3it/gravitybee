@@ -426,23 +426,9 @@ class PackageGenerator():
         if not os.path.exists(self.args.directories["work"]):
             os.makedirs(self.args.directories["work"])
 
-        commands = [
-            'git',
-            'clone',
-            'https://github.com/pyinstaller/pyinstaller.git',
-            os.path.join(self.args.directories["work"], 'pyinstaller'),
-        ]
-
-        subproc_args = {}
-        subproc_args['check'] = True
-
-        subprocess.run(commands, **subproc_args)
-
-        shutil.copytree(os.path.join(
-            self.args.directories["work"],
-            'pyinstaller',
-            'PyInstaller',
-            'hooks'), os.path.join(self.args.directories["work"], 'hooks'))
+        if not os.path.exists(
+                os.path.join(self.args.directories["work"], 'hooks')):
+            os.makedirs(os.path.join(self.args.directories["work"], 'hooks'))
 
         if not os.path.exists(FILE_DIR):
             os.makedirs(FILE_DIR)
