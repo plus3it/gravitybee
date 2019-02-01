@@ -368,19 +368,19 @@ class PackageGenerator():
     # https://github.com/pyinstaller/pyinstaller/issues/1935
 
     EXTRA_REQD_PACKAGES = [
-        'packaging',
-        'configparser',
-        'setuptools'
+        # 'packaging',
+        # 'configparser',
+        # 'setuptools'
     ]
 
     EXTRA_REQD_MODULES = [
-        'packaging',
-        'configparser',
-        'packaging.version',
-        'packaging.specifiers',
-        'pkg_resources',
-        'html.parser',
-        'distutils'
+        # 'packaging',
+        # 'configparser',
+        # 'packaging.version',
+        # 'packaging.specifiers',
+        # 'pkg_resources',
+        # 'html.parser',
+        # 'distutils'
     ]
 
     @classmethod
