@@ -864,24 +864,22 @@ class PackageGenerator():
         logger.info(", ".join(commands))
 
         subproc_args = {}
-        subproc_args['check'] = True
+        subproc_args['check'] = False
 
         subproc_args['stdout'] = subprocess.PIPE
         subproc_args['stderr'] = subprocess.PIPE
 
-        result = None
-
-        try:
-            result = subprocess.run(commands, **subproc_args)
-        except subprocess.CalledProcessError:
-            logger.error("Non-zero exit code from pyinstaller")
-            return EXIT_NOT_OKAY
+        result = subprocess.run(commands, **subproc_args)
 
         if result.stdout:
             logger.debug(result.stdout.decode('utf-8'))
 
         if result.stderr and result.stderr != result.stdout:
             logger.error(result.stderr.decode('utf-8'))
+
+        if result.returncode != 0:
+            logger.error("PyInstaller exited with error code %s", result.returncode)
+            return EXIT_NOT_OKAY
 
         # get info about standalone binary
         for standalone in glob.glob(
