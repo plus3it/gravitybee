@@ -9,7 +9,6 @@ pylint = "==2.2.2"
 pytest = "==4.2.0"
 
 [packages]
-distlib = "==0.2.8"
 setuptools = "==40.6.3"
 click = "==7.0"
 PyInstaller = "==3.4"
