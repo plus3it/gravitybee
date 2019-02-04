@@ -13,18 +13,20 @@ Example:
         $ gravitybee --help
 """
 
-import os
-from string import Template
-import json
+import glob
 import hashlib
+import json
 import logging
 import logging.config
+import os
 import platform
 import shutil
 import subprocess
 import uuid
-import glob
+from string import Template
 import pyppyn
+from gravitybee.distutils_utils import replace_venv_distutils,\
+    unreplace_venv_distutils
 
 
 __version__ = "0.1.25"
@@ -804,6 +806,8 @@ class PackageGenerator():
         """Generate the standalone application."""
         self._create_hook()
 
+        replace_venv_distutils()
+
         try:
             shutil.copy2(self.args.info["script_path"], self._temp_script)
         except FileNotFoundError:
@@ -877,8 +881,11 @@ class PackageGenerator():
         if result.stderr and result.stderr != result.stdout:
             logger.error(result.stderr.decode('utf-8'))
 
+        unreplace_venv_distutils()
+
         if result.returncode != 0:
-            logger.error("PyInstaller exited with error code %s", result.returncode)
+            logger.error(
+                "PyInstaller exited with error code %s", result.returncode)
             return EXIT_NOT_OKAY
 
         # get info about standalone binary
