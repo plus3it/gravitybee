@@ -201,9 +201,7 @@ class Arguments():
         )
 
         # arguments that DO depend on pyppyn
-        self.pyppy = pyppyn.ConfigRep(
-            setup_path=self.directories["pkg"]
-        )
+        self.pyppy = pyppyn.ConfigRep(setup_path=self.directories["pkg"])
 
         self.info["console_script"] = self.pyppy.get_config_attr(
             'console_scripts'

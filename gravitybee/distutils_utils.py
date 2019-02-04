@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """Utilities for fixing issues with distutils."""
 
 import distutils
-from distutils.sysconfig import get_python_lib
+from distutils.sysconfig import get_python_lib   # pylint: disable=import-error
 import os
 import shutil
 
