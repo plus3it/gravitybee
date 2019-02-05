@@ -13,21 +13,23 @@ Example:
         $ gravitybee --help
 """
 
-import os
-from string import Template
-import json
+import glob
 import hashlib
+import json
 import logging
 import logging.config
+import os
 import platform
 import shutil
 import subprocess
 import uuid
-import glob
+from string import Template
 import pyppyn
+from gravitybee.distutils_utils import replace_venv_distutils,\
+    unreplace_venv_distutils
 
 
-__version__ = "0.1.25"
+__version__ = "0.1.26"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
@@ -199,9 +201,7 @@ class Arguments():
         )
 
         # arguments that DO depend on pyppyn
-        self.pyppy = pyppyn.ConfigRep(
-            setup_path=self.directories["pkg"]
-        )
+        self.pyppy = pyppyn.ConfigRep(setup_path=self.directories["pkg"])
 
         self.info["console_script"] = self.pyppy.get_config_attr(
             'console_scripts'
@@ -368,19 +368,19 @@ class PackageGenerator():
     # https://github.com/pyinstaller/pyinstaller/issues/1935
 
     EXTRA_REQD_PACKAGES = [
-        'packaging',
-        'configparser',
-        'setuptools'
+        # 'packaging',
+        # 'configparser',
+        # 'setuptools'
     ]
 
     EXTRA_REQD_MODULES = [
-        'packaging',
-        'configparser',
-        'packaging.version',
-        'packaging.specifiers',
-        'pkg_resources',
-        'html.parser',
-        'distutils'
+        # 'packaging',
+        # 'configparser',
+        # 'packaging.version',
+        # 'packaging.specifiers',
+        # 'pkg_resources',
+        # 'html.parser',
+        # 'distutils'
     ]
 
     @classmethod
@@ -425,6 +425,10 @@ class PackageGenerator():
 
         if not os.path.exists(self.args.directories["work"]):
             os.makedirs(self.args.directories["work"])
+
+        if not os.path.exists(
+                os.path.join(self.args.directories["work"], 'hooks')):
+            os.makedirs(os.path.join(self.args.directories["work"], 'hooks'))
 
         if not os.path.exists(FILE_DIR):
             os.makedirs(FILE_DIR)
@@ -475,6 +479,7 @@ class PackageGenerator():
         # 3 - write file
         self.files["hook"] = os.path.join(
             self.args.directories["work"],
+            'hooks',
             "hook-" + self.args.info["pkg_name"] + ".py"
         )
         hook_file = open(self.files["hook"], "w+")
@@ -799,6 +804,8 @@ class PackageGenerator():
         """Generate the standalone application."""
         self._create_hook()
 
+        replace_venv_distutils()
+
         try:
             shutil.copy2(self.args.info["script_path"], self._temp_script)
         except FileNotFoundError:
@@ -818,7 +825,8 @@ class PackageGenerator():
             '--noconfirm',
             '--name', self.standalone_name,
             '--paths', self.args.directories["src"],
-            '--additional-hooks-dir', self.args.directories["work"],
+            '--additional-hooks-dir', os.path.join(
+                self.args.directories["work"], 'hooks'),
             '--specpath', self.args.directories["work"],
             '--workpath', os.path.join(self.args.directories["work"], 'build'),
             '--distpath', os.path.join(self.args.directories["work"], 'dist'),
@@ -858,24 +866,25 @@ class PackageGenerator():
         logger.info(", ".join(commands))
 
         subproc_args = {}
-        subproc_args['check'] = True
+        subproc_args['check'] = False
 
         subproc_args['stdout'] = subprocess.PIPE
         subproc_args['stderr'] = subprocess.PIPE
 
-        result = None
-
-        try:
-            result = subprocess.run(commands, **subproc_args)
-        except subprocess.CalledProcessError:
-            logger.error("Non-zero exit code from pyinstaller")
-            return EXIT_NOT_OKAY
+        result = subprocess.run(commands, **subproc_args)
 
         if result.stdout:
             logger.debug(result.stdout.decode('utf-8'))
 
         if result.stderr and result.stderr != result.stdout:
             logger.error(result.stderr.decode('utf-8'))
+
+        unreplace_venv_distutils()
+
+        if result.returncode != 0:
+            logger.error(
+                "PyInstaller exited with error code %s", result.returncode)
+            return EXIT_NOT_OKAY
 
         # get info about standalone binary
         for standalone in glob.glob(
