@@ -1,5 +1,20 @@
 # -*- coding: utf-8 -*-
-"""Utilities for fixing issues with distutils."""
+"""Utilities for fixing issues with distutils.
+
+In a virtual env, distutils is not an actual package but a skeleton pointing
+to the non-virtual Python install distutils. The pyinstaller distutils hook is
+supposed to handle this issue and ensure that the real distutils is included
+with standalone packages. However, the hook has not been working and the
+maintainers seem uninterested in discussing:
+https://github.com/pyinstaller/pyinstaller/issues/4031
+
+This is a workaround.
+
+replace_venv_distutils() copies the real distutils directory into the virtual
+env and unreplace_venv_distutils() puts everything back. This can be used in
+gravitybee right before building the standalone. If the hook works, these
+utilities will have no effect. If the hook doesn't work, it will allow
+standalones to still have a valid copy of distutils."""
 
 import distutils
 from distutils.sysconfig import get_python_lib   # pylint: disable=import-error
