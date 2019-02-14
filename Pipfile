@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 flake8 = "==3.7.5"
 pylint = "==2.2.2"
-pytest = "==4.2.0"
+pytest = "==4.2.1"
 
 [packages]
 setuptools = "==40.7.3"
