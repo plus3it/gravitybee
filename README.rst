@@ -14,6 +14,9 @@ GravityBee
 .. image:: https://img.shields.io/pypi/v/gravitybee.svg
     :target: https://pypi.python.org/pypi/gravitybee
     :alt: Version
+.. image:: https://pullreminders.com/badge.svg
+    :target: https://pullreminders.com?ref=badge
+    :alt: Pull Reminder
 
 GravityBee helps you generate standalone applications for Windows,
 Mac, and Linux from your Python applications.
