@@ -871,7 +871,9 @@ class PackageGenerator():
         subproc_args['stdout'] = subprocess.PIPE
         subproc_args['stderr'] = subprocess.PIPE
 
-        result = subprocess.run(commands, **subproc_args)
+        result = subprocess.run(        # pylint: disable=subprocess-run-check
+            commands, **subproc_args)
+        # check is explicitly set within subproc_args but pylint doesn't follow
 
         if result.stdout:
             logger.debug(result.stdout.decode('utf-8'))
