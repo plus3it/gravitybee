@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+0.1.27 - 2020.01.14
+-------------------
+* [ENHANCEMENT] Bump version to include updated dependencies.
+
 0.1.26 - 2019.02.05
 -------------------
 * [ENHANCEMENT] Fix distutils issue, improve error handling, update versions.
