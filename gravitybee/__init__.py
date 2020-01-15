@@ -381,6 +381,7 @@ class PackageGenerator():
         # 'pkg_resources',
         # 'html.parser',
         # 'distutils'
+        'pkg_resources.py2_warn'
     ]
 
     @classmethod
