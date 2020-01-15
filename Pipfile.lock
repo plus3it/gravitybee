@@ -16,10 +16,10 @@
     "default": {
         "altgraph": {
             "hashes": [
-                "sha256:d6814989f242b2b43025cba7161fc1b8fb487a62cd49c49245d6fd01c18ac997",
-                "sha256:ddf5320017147ba7b810198e0b6619bd7b5563aa034da388cea8546b877f9b0c"
+                "sha256:1f05a47122542f97028caf78775a095fbe6a2699b5089de8477eb583167d69aa",
+                "sha256:c623e5f3408ca61d4016f23a681b9adb100802ca3e3da5e718915a9e4052cebe"
             ],
-            "version": "==0.16.1"
+            "version": "==0.17"
         },
         "click": {
             "hashes": [
@@ -38,11 +38,11 @@
         },
         "pyppyn": {
             "hashes": [
-                "sha256:5fadcbcc96955fdc74326d2f41df896df7ca0c93180e08144c68b8be772201c1",
-                "sha256:bd8a2ae134992d74c330f0791c17a640311b2b1f66ed03f9e670297abb38fc4d"
+                "sha256:216f05faaea113a5172d67c6492fe0b66c203b939072bcc2fe35fe8226b76b23",
+                "sha256:d442a7e9c007f99f311f516cd5ee4a129002e7b3a428de5f52fa9a2c11ea970b"
             ],
             "index": "pypi",
-            "version": "==0.3.11"
+            "version": "==0.3.12"
         },
         "wheel": {
             "hashes": [
@@ -124,10 +124,10 @@
         },
         "more-itertools": {
             "hashes": [
-                "sha256:b84b238cce0d9adad5ed87e745778d20a3f8487d0f0cb8b8a586816c7496458d",
-                "sha256:c833ef592a0324bcc6a60e48440da07645063c453880c9477ceb22490aec1564"
+                "sha256:1a2a32c72400d365000412fe08eb4a24ebee89997c18d3d147544f70f5403b39",
+                "sha256:c468adec578380b6281a114cb8a5db34eb1116277da92d7c46f904f0b52d3288"
             ],
-            "version": "==8.0.2"
+            "version": "==8.1.0"
         },
         "packaging": {
             "hashes": [
