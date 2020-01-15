@@ -1,7 +1,11 @@
 CHANGE LOG
 ==========
 
-0.1.27 - 2020.01.14
+0.1.28 - 2020.01.14
+-------------------
+* [ENHANCEMENT] Bump version to include updated dependencies.
+
+0.1.27 - 2019.05.06
 -------------------
 * [ENHANCEMENT] Bump version to include updated dependencies.
 
