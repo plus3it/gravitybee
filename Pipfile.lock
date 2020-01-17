@@ -38,18 +38,18 @@
         },
         "pyppyn": {
             "hashes": [
-                "sha256:216f05faaea113a5172d67c6492fe0b66c203b939072bcc2fe35fe8226b76b23",
-                "sha256:d442a7e9c007f99f311f516cd5ee4a129002e7b3a428de5f52fa9a2c11ea970b"
+                "sha256:0fcf61a64f7a8386c82669af2e390aacc5995a301a33adbebf6ab1abd953a7a8",
+                "sha256:f2603fb6a3f67590970d91f0f325ce567235b32edaa943d4f878f1adac8e53fd"
             ],
             "index": "pypi",
-            "version": "==0.3.12"
+            "version": "==0.3.13"
         },
         "wheel": {
             "hashes": [
-                "sha256:029703bf514e16c8271c3821806a1c171220cc5bdd325cbf4e7da1e056a01db6",
-                "sha256:1e53cdb3f808d5ccd0df57f964263752aa74ea7359526d3da6c02114ec1e1d44"
+                "sha256:10c9da68765315ed98850f8e048347c3eb06dd81822dc2ab1d4fde9dc9702646",
+                "sha256:f4da1763d3becf2e2cd92a14a7c920f0f00eca30fdde9ea992c836685b9faf28"
             ],
-            "version": "==0.32.3"
+            "version": "==0.33.6"
         }
     },
     "develop": {
