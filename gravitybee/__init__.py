@@ -29,7 +29,7 @@ from gravitybee.distutils_utils import replace_venv_distutils,\
     unreplace_venv_distutils
 
 
-__version__ = "0.1.29"
+__version__ = "0.1.30"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
