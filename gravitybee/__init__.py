@@ -25,9 +25,7 @@ import subprocess
 import uuid
 from string import Template
 import pyppyn
-from gravitybee.distutils_utils import replace_venv_distutils,\
-    unreplace_venv_distutils
-
+from gravitybee.distutils_utils import fix_distutils
 
 __version__ = "0.1.30"
 EXIT_OKAY = 0
@@ -805,7 +803,7 @@ class PackageGenerator():
         """Generate the standalone application."""
         self._create_hook()
 
-        replace_venv_distutils()
+        fix_distutils()
 
         try:
             shutil.copy2(self.args.info["script_path"], self._temp_script)
@@ -881,8 +879,6 @@ class PackageGenerator():
 
         if result.stderr and result.stderr != result.stdout:
             logger.error(result.stderr.decode('utf-8'))
-
-        unreplace_venv_distutils()
 
         if result.returncode != 0:
             logger.error(
