@@ -22,11 +22,13 @@ import os
 import shutil
 
 
+DISTUTILS_DIR = getattr(distutils, 'distutils_path', None)
+
+
 def _get_real_distutils_path():
-    distutils_dir = getattr(distutils, 'distutils_path', None)
-    if distutils_dir is None:
+    if DISTUTILS_DIR is None:
         raise NotADirectoryError("Unable to find distutils")
-    return os.path.dirname(distutils_dir)
+    return os.path.dirname(DISTUTILS_DIR)
 
 
 def _get_venv_distutils_parent():
@@ -35,6 +37,12 @@ def _get_venv_distutils_parent():
 
 def _get_venv_distutils_path():
     return os.path.join(_get_venv_distutils_parent(), 'distutils')
+
+
+def fix_distutils():
+    """Attempt to fix issues with distutils"""
+    if DISTUTILS_DIR and DISTUTILS_DIR.endswith('__init__.py'):
+        distutils.distutils_path = os.path.dirname(DISTUTILS_DIR)
 
 
 def replace_venv_distutils():

@@ -48,8 +48,11 @@ jobs:
       before_install:
         - choco install python --version 3.7.4
         - python -m pip install -r requirements/ci.txt
-        - virtualenv $HOME/venv
-        - source $HOME/venv/Scripts/activate
+        - startingdir=$(pwd)
+        - cd $HOME
+        - virtualenv venv
+        - source venv/Scripts/activate
+        - cd $startingdir
       install:
         - python -m pip install -r requirements/pip.txt
         - python -m pip install -r requirements/test.txt
