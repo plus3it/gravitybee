@@ -1,5 +1,5 @@
 setuptools==45.2.0
 click==7.0
 PyInstaller==3.6
-pyppyn==0.3.13
+pyppyn==0.3.16
 pytest==5.3.5
