@@ -27,7 +27,7 @@ from string import Template
 import pyppyn
 from gravitybee.distutils_utils import fix_distutils
 
-__version__ = "0.1.33"
+__version__ = "0.1.34"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
