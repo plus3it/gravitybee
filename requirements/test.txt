@@ -1,4 +1,4 @@
 click==7.1.2
 PyInstaller==4.0
-pyppyn==0.3.37
+pyppyn==0.3.38
 pytest==6.0.2
