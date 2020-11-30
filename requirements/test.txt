@@ -1,4 +1,5 @@
-click==7.1.2
-PyInstaller==4.1
-pyppyn==0.3.42
-pytest==6.1.2
+-r ./pip.txt
+-r ./pytest.txt
+-r ./install.txt
+
+six==1.15.0
