@@ -37,18 +37,18 @@ jobs:
         with:
           ref: master
       - name: Bump version
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: '3.x'
       - run: |
           pip install -r $GITHUB_WORKSPACE/requirements/release.txt
           newver=$(bumpversion --dry-run --list patch | grep new_version= | sed -r s,"^.*=",,)
-          echo "::set-env name=NEW_VERSION::$newver"
-          echo "New version will be ${{ env.NEW_VERSION }}"
+          echo "NEW_VERSION=${newver}" >> $GITHUB_ENV
+          echo "New version will be ${newver}"
           bumpversion patch
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v2
+        uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: autorelease/${{ env.NEW_VERSION }}
@@ -57,4 +57,4 @@ jobs:
           body: This is an automated release that updates dependencies.
       - name: Show outputs
         run: |
-          echo "Pull Request Number - ${{ steps.cpr.outputs.pr_number }}"
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
