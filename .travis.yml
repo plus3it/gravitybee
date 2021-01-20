@@ -39,22 +39,6 @@ jobs:
     - stage: test
       python: 3.7
       dist: bionic
-    - stage: test
-      os: osx
-      osx_image: xcode10.1
-      language: shell
-      python: 3.7
-      # Perform the manual steps on osx to install python3 and activate venv
-      before_install:
-        - python -m pip install -r requirements/ci.txt
-        - virtualenv $HOME/venv -p python3
-        - source $HOME/venv/bin/activate
-      cache:
-        directories:
-          - $HOME/Library/Caches/Homebrew
-          - /usr/local/Homebrew/Library/Homebrew
-          - /usr/local/Homebrew/Library/Taps
-          - $HOME/.cache/pip
     - stage: deploy
       if: branch = master AND type != pull_request
       python: 3.6
