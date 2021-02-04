@@ -458,16 +458,14 @@ class PackageGenerator():
 
         # 1 - extra data
         hook += "# collection extra data, if any (using --extra-data option)"
-        # checks if data attribute exists
-        if self.args.extra["data"]:
-            for data in self.args.extra["data"]:
-                hook += "\ndatas.append(('"
-                hook += self.args.directories["pkg"] + os.sep
-                if self.args.directories["src"] != '.':
-                    hook += self.args.directories["src"] + os.sep
-                hook += self.args.info["pkg_name"] + os.sep + data
-                hook += "', '" + self.args.info["pkg_name"] + "/" + data + "'))"
-                hook += "\n\n"
+        for data in self.args.extra["data"] or []:
+            hook += "\ndatas.append(('"
+            hook += self.args.directories["pkg"] + os.sep
+            if self.args.directories["src"] != '.':
+                hook += self.args.directories["src"] + os.sep
+            hook += self.args.info["pkg_name"] + os.sep + data
+            hook += "', '" + self.args.info["pkg_name"] + "/" + data + "'))"
+            hook += "\n\n"
 
         # 2 - package metadata
         hook += "# add dependency metadata"
