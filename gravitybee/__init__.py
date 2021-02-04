@@ -459,7 +459,7 @@ class PackageGenerator():
         # 1 - extra data
         hook += "# collection extra data, if any (using --extra-data option)"
         # checks if data attribute exists
-        if self.args.extra["data"]:
+        for data in self.args.extra.get("data", []):
             for data in self.args.extra["data"]:
                 hook += "\ndatas.append(('"
                 hook += self.args.directories["pkg"] + os.sep
