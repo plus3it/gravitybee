@@ -1,12 +1,14 @@
 version: ~> 1.0
+dist: bionic
 language: python
 stages:
   - lint
   - test
   - deploy
 python:
-  - "3.5"
   - "3.6"
+  - "3.7"
+  - "3.8"
 
 env:
   global:
@@ -36,9 +38,6 @@ jobs:
         - pylint gravitybee
         - pylint tests/*.py
         - flake8
-    - stage: test
-      python: 3.7
-      dist: bionic
     - stage: deploy
       if: branch = master AND type != pull_request
       python: 3.6
