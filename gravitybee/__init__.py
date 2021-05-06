@@ -481,9 +481,8 @@ class PackageGenerator():
             'hooks',
             "hook-" + self.args.info["pkg_name"] + ".py"
         )
-        hook_file = open(self.files["hook"], "w+")
-        hook_file.write(hook)
-        hook_file.close()
+        with open(self.files["hook"], "w+") as hook_file:
+            hook_file.write(hook)
 
         logger.info("Created hook file: %s", self.files["hook"])
 
@@ -515,9 +514,8 @@ class PackageGenerator():
 
                 logger.info("SHA256 hash file: %s", self.files["sha"])
 
-                sha_file = open(self.files["sha"], 'w')
-                sha_file.write(json.dumps(sha_dict))
-                sha_file.close()
+                with open(self.files["sha"], 'w') as sha_file:
+                    sha_file.write(json.dumps(sha_dict))
 
     def _stage_artifacts(self):
 
@@ -667,9 +665,8 @@ class PackageGenerator():
             "Writing information file: %s",
             PackageGenerator.INFO_FILE
         )
-        info_file = open(PackageGenerator.INFO_FILE, 'w')
-        info_file.write(json.dumps(gb_info))
-        info_file.close()
+        with open(PackageGenerator.INFO_FILE, 'w') as info_file:
+            info_file.write(json.dumps(gb_info))
 
         return gb_info
 
@@ -726,9 +723,8 @@ class PackageGenerator():
                 "Writing files file: %s",
                 PackageGenerator.FILES_FILE
             )
-            file_file = open(PackageGenerator.FILES_FILE, 'w')
-            file_file.write(json.dumps(gb_files))
-            file_file.close()
+            with open(PackageGenerator.FILES_FILE, 'w') as file_file:
+                file_file.write(json.dumps(gb_files))
 
             # ENVIRONS ----------------------------------------------
 
@@ -748,21 +744,18 @@ class PackageGenerator():
                 PackageGenerator.ENVIRON_SCRIPT
                 + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
             )
-            shell = open(
+            with open(
                 PackageGenerator.ENVIRON_SCRIPT
                 + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT,
-                mode='w',
-                encoding=PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE
-            )
-
-            for key, value in gb_info.items():
-                shell.write("export ")
-                shell.write(PackageGenerator.ENVIRON_PREFIX + key.upper())
-                shell.write('="')
-                shell.write(str(value))
-                shell.write('"\n')
-
-            shell.close()
+                mode="w",
+                encoding=PackageGenerator.ENVIRON_SCRIPT_POSIX_ENCODE,
+            ) as shell:
+                for key, value in gb_info.items():
+                    shell.write("export ")
+                    shell.write(PackageGenerator.ENVIRON_PREFIX + key.upper())
+                    shell.write('="')
+                    shell.write(str(value))
+                    shell.write('"\n')
 
             logger.info(
                 "Writing environ script: %s%s",
@@ -770,21 +763,18 @@ class PackageGenerator():
                 PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
             )
 
-            bat = open(
+            with open(
                 PackageGenerator.ENVIRON_SCRIPT
                 + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT,
-                mode='w',
-                encoding=PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE
-            )
-
-            for key, value in gb_info.items():
-                bat.write("set ")
-                bat.write(PackageGenerator.ENVIRON_PREFIX + key.upper())
-                bat.write("=")
-                bat.write(str(value))
-                bat.write("\r\n")
-
-            bat.close()
+                mode="w",
+                encoding=PackageGenerator.ENVIRON_SCRIPT_WIN_ENCODE,
+            ) as bat:
+                for key, value in gb_info.items():
+                    bat.write("set ")
+                    bat.write(PackageGenerator.ENVIRON_PREFIX + key.upper())
+                    bat.write("=")
+                    bat.write(str(value))
+                    bat.write("\r\n")
 
     def _cleanup(self):
 
