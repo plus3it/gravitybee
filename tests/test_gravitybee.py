@@ -129,14 +129,10 @@ def test_filename_file(arguments):
     package_generator = PackageGenerator(arguments)
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
-        sa_file = open(
-            os.path.join(
-                FILE_DIR,
-                "gravitybee-files.json"
-            ), "r"
-        )
-        gb_files = json.loads(sa_file.read())
-        sa_file.close()
+        with open(
+            os.path.join(FILE_DIR, "gravitybee-files.json"), "r"
+        ) as sa_file:
+            gb_files = json.loads(sa_file.read())
 
         assert gb_files[0]['filename'].startswith("gbtestapp-4.2.6-standalone")
     else:
@@ -158,14 +154,10 @@ def test_file_label():
     package_generator = PackageGenerator(arguments)
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
-        sa_file = open(
-            os.path.join(
-                FILE_DIR,
-                "gravitybee-files.json"
-            ), "r"
-        )
-        gb_files = json.loads(sa_file.read())
-        sa_file.close()
+        with open(
+            os.path.join(FILE_DIR, "gravitybee-files.json"), "r"
+        ) as sa_file:
+            gb_files = json.loads(sa_file.read())
 
         assert gb_files[0]['label'].startswith(label_prefix)
     else:
@@ -184,13 +176,11 @@ def test_file_sha(arguments):
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
         # get the info from info file
-        info_file = open(PackageGenerator.INFO_FILE, "r")
-        info = json.loads(info_file.read())
-        info_file.close()
+        with open(PackageGenerator.INFO_FILE, "r") as info_file:
+            info = json.loads(info_file.read())
 
-        sha_file = open(package_generator.files["sha_w_path"], "r")
-        sha_dict = json.loads(sha_file.read())
-        sha_file.close()
+        with open(package_generator.files["sha_w_path"], "r") as sha_file:
+            sha_dict = json.loads(sha_file.read())
 
         assert info['file_sha'] \
             == PackageGenerator.get_hash(info['gen_file_w_path']) \
