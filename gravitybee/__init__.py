@@ -317,6 +317,15 @@ class Arguments():
             self.info["console_script"]
         ))
 
+        # for conda envs, as long as you have set the env variable
+        possible_paths.append(os.path.join(
+            os.path.expanduser(os.environ.get('VIRTUAL_ENV')),
+            'Lib',
+            'site-packages',
+            self.info['pkg_name'],
+            self.info["console_script"] + '.py'
+        ))
+
         for path in possible_paths:
             if os.path.exists(path):
                 return path
@@ -457,15 +466,16 @@ class PackageGenerator():
             {'app_name': self.args.info["app_name"]})
 
         # 1 - extra data
-        hook += "# collection extra data, if any (using --extra-data option)"
-        for data in self.args.extra.get("data", []):
-            hook += "\ndatas.append(('"
-            hook += self.args.directories["pkg"] + os.sep
-            if self.args.directories["src"] != '.':
-                hook += self.args.directories["src"] + os.sep
-            hook += self.args.info["pkg_name"] + os.sep + data
-            hook += "', '" + self.args.info["pkg_name"] + "/" + data + "'))"
-            hook += "\n\n"
+        if self.args.extra["data"] is not None:
+            hook += "# collection extra data, if any (using --extra-data option)"
+            for data in self.args.extra.get("data", []):
+                hook += "\ndatas.append(('"
+                hook += self.args.directories["pkg"] + os.sep
+                if self.args.directories["src"] != '.':
+                    hook += self.args.directories["src"] + os.sep
+                hook += self.args.info["pkg_name"] + os.sep + data
+                hook += "', '" + self.args.info["pkg_name"] + "/" + data + "'))"
+                hook += "\n\n"
 
         # 2 - package metadata
         hook += "# add dependency metadata"
