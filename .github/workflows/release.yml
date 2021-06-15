@@ -37,7 +37,7 @@ jobs:
         with:
           ref: master
       - name: Bump version
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.2.2
         with:
           python-version: '3.x'
       - run: |
