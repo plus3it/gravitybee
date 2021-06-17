@@ -184,7 +184,7 @@ GB_EXTRA_PKGS     --extra-pkgs          Any extra packages to be included with
                                         the standalone executable.
                                         *Default: None*
 VIRTUAL_ENV                             If using conda env set VIRTUAL_ENV to
-                                        conda env folder
+                                        conda env directory
 ================  ==================    ==========================================
 
 If you are using environment variables, you could set them up like
