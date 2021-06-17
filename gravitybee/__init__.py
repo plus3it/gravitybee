@@ -27,7 +27,7 @@ from string import Template
 import pyppyn
 from gravitybee.distutils_utils import fix_distutils
 
-__version__ = "0.1.83"
+__version__ = "0.1.84"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
@@ -317,6 +317,15 @@ class Arguments():
             self.info["console_script"]
         ))
 
+        # for conda envs, as long as you have set the env variable
+        possible_paths.append(os.path.join(
+            os.path.expanduser(os.environ.get('VIRTUAL_ENV')),
+            'Lib',
+            'site-packages',
+            self.info['pkg_name'],
+            self.info["console_script"] + '.py'
+        ))
+
         for path in possible_paths:
             if os.path.exists(path):
                 return path
@@ -458,7 +467,7 @@ class PackageGenerator():
 
         # 1 - extra data
         hook += "# collection extra data, if any (using --extra-data option)"
-        for data in self.args.extra.get("data", []):
+        for data in self.args.extra.get("data") or []:
             hook += "\ndatas.append(('"
             hook += self.args.directories["pkg"] + os.sep
             if self.args.directories["src"] != '.':
