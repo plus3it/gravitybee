@@ -231,6 +231,17 @@ class Arguments():
             )
         )
 
+        self.info["hook_template"] = kwargs.get(
+            'hook_template',
+            os.environ.get(
+                'GB_HOOK_TEMPLATE',
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "hook-template"
+                )
+            )
+        )
+
         pl_sys = platform.system().lower()
         self.info["operating_system"] = pl_sys if pl_sys != 'darwin' else 'osx'
 
@@ -257,6 +268,7 @@ class Arguments():
         logger.info("staging_dir: %s", self.directories["staging"])
         logger.info("with_latest: %s", self.flags["with_latest"])
         logger.info("sha: %s", self.info["sha"])
+        logger.info("hook_template: %s", self.info["hook_template"])
 
         if self.extra["data"] is not None:
             for extra_data in self.extra["data"]:
@@ -454,10 +466,7 @@ class PackageGenerator():
         # get the hook ready
         template = Template(
             open(
-                os.path.join(
-                    self.gb_dir,
-                    "hook-template"
-                ),
+                self.args.info["hook_template"],
                 "r"
             ).read()
         )
@@ -482,8 +491,8 @@ class PackageGenerator():
         # 2 - package metadata
         hook += "# add dependency metadata"
         for package in self.args.pyppy.get_required():
-            # datas += copy_metadata(pkg)
-            hook += "\ndatas += copy_metadata('" + package + "')"
+                # datas += copy_metadata(pkg)
+                hook += "\ndatas += copy_metadata('" + package + "')"
 
         hook += "\n"
 
