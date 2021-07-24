@@ -491,8 +491,8 @@ class PackageGenerator():
         # 2 - package metadata
         hook += "# add dependency metadata"
         for package in self.args.pyppy.get_required():
-                # datas += copy_metadata(pkg)
-                hook += "\ndatas += copy_metadata('" + package + "')"
+            # datas += copy_metadata(pkg)
+            hook += "\ndatas += copy_metadata('" + package + "')"
 
         hook += "\n"
 
