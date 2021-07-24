@@ -3,8 +3,8 @@ from PyInstaller.utils.hooks import copy_metadata, collect_data_files,\
 
 # main package related hook information
 hiddenimports = (
-    collect_submodules('$app_name')
+    collect_submodules('$pkg_name')
 )
 
 datas = copy_metadata('$app_name')
-datas += collect_data_files('$app_name')
+datas += collect_data_files('$pkg_name')

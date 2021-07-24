@@ -463,7 +463,10 @@ class PackageGenerator():
         )
 
         hook = template.safe_substitute(
-            {'app_name': self.args.info["app_name"]})
+            {
+                'app_name': self.args.info["app_name"],
+                'pkg_name': self.args.info["pkg_name"]
+            })
 
         # 1 - extra data
         hook += "# collection extra data, if any (using --extra-data option)"
