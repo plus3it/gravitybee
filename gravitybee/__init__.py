@@ -480,12 +480,17 @@ class PackageGenerator():
         # 1 - extra data
         hook += "# collection extra data, if any (using --extra-data option)"
         for data in self.args.extra.get("data") or []:
+            extradir = self.args.directories["pkg"] + os.sep
+            if self.args.directories["src"] != ".":
+                extradir += self.args.directories["src"] + os.sep
+            extradir += self.args.info["pkg_name"] + os.sep + data
+            pkg = os.path.normpath(self.args.info["pkg_name"] + "/" + data)
+            # Normalize the path, replace backslashes with forward slashes
+            # Otherwise, we risk character literals (like \t) being in the path string
+            extradir = os.path.normpath(extradir).replace("\\", "/")
             hook += "\ndatas.append(('"
-            hook += self.args.directories["pkg"] + os.sep
-            if self.args.directories["src"] != '.':
-                hook += self.args.directories["src"] + os.sep
-            hook += self.args.info["pkg_name"] + os.sep + data
-            hook += "', '" + self.args.info["pkg_name"] + "/" + data + "'))"
+            hook += extradir
+            hook += "', '" + pkg + "'))"
             hook += "\n\n"
 
         # 2 - package metadata
