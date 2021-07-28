@@ -19,26 +19,30 @@ def test_no_output():
         extra_data=["gbextradata"],
         pkg_dir=os.path.join("tests", "gbtestapp"),
         clean=True,
-        no_file=True
+        no_file=True,
     )
     package_generator = PackageGenerator(args)
     generated_okay = package_generator.generate()
 
     sha_filename = package_generator.args.formats["sha"].format(
-        an=package_generator.args.info['app_name'],
-        v=package_generator.args.info['app_version'],
-        os=package_generator.args.info['operating_system'],
-        m=package_generator.args.info['machine_type']
+        an=package_generator.args.info["app_name"],
+        v=package_generator.args.info["app_version"],
+        os=package_generator.args.info["operating_system"],
+        m=package_generator.args.info["machine_type"],
     )
 
-    assert generated_okay == EXIT_OKAY \
-        and not os.path.exists(PackageGenerator.INFO_FILE) \
-        and not os.path.exists(PackageGenerator.FILES_FILE) \
-        and not os.path.exists(PackageGenerator.ENVIRON_SCRIPT
-                               + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT) \
-        and not os.path.exists(PackageGenerator.ENVIRON_SCRIPT
-                               + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT) \
+    assert (
+        generated_okay == EXIT_OKAY
+        and not os.path.exists(PackageGenerator.INFO_FILE)
+        and not os.path.exists(PackageGenerator.FILES_FILE)
+        and not os.path.exists(
+            PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
+        )
+        and not os.path.exists(
+            PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
+        )
         and not os.path.exists(sha_filename)
+    )
 
 
 # should be second so there are still not output files
@@ -50,19 +54,23 @@ def test_no_output_but_sha():
         pkg_dir=os.path.join("tests", "gbtestapp"),
         sha=Arguments.OPTION_SHA_FILE,
         clean=True,
-        no_file=True
+        no_file=True,
     )
     package_generator = PackageGenerator(args)
     generated_okay = package_generator.generate()
 
-    assert generated_okay == EXIT_OKAY \
-        and not os.path.exists(PackageGenerator.INFO_FILE) \
-        and not os.path.exists(PackageGenerator.FILES_FILE) \
-        and not os.path.exists(PackageGenerator.ENVIRON_SCRIPT
-                               + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT) \
-        and not os.path.exists(PackageGenerator.ENVIRON_SCRIPT
-                               + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT) \
+    assert (
+        generated_okay == EXIT_OKAY
+        and not os.path.exists(PackageGenerator.INFO_FILE)
+        and not os.path.exists(PackageGenerator.FILES_FILE)
+        and not os.path.exists(
+            PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_POSIX_EXT
+        )
+        and not os.path.exists(
+            PackageGenerator.ENVIRON_SCRIPT + PackageGenerator.ENVIRON_SCRIPT_WIN_EXT
+        )
         and os.path.exists(package_generator.files["sha_w_path"])
+    )
 
 
 # test extra_pkgs and extra_modules
@@ -90,12 +98,12 @@ def arguments():
         extra_data=["gbextradata"],
         pkg_dir=os.path.join("tests", "gbtestapp"),
         sha=Arguments.OPTION_SHA_FILE,
-        clean=True
+        clean=True,
     )
 
 
 def test_generation(arguments):
-    """ Tests generating the executable. """
+    """Tests generating the executable."""
     package_generator = PackageGenerator(arguments)
     generated_okay = package_generator.generate()
 
@@ -103,21 +111,22 @@ def test_generation(arguments):
 
 
 def test_executable(arguments):
-    """ Tests running the executable. """
+    """Tests running the executable."""
     package_generator = PackageGenerator(arguments)
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
-        files = glob.glob(os.path.join(
-            package_generator.args.directories['staging'],
-            package_generator.args.info['app_version'],
-            'gbtestapp-4.2.6-standalone*'
-        ))
+        files = glob.glob(
+            os.path.join(
+                package_generator.args.directories["staging"],
+                package_generator.args.info["app_version"],
+                "gbtestapp-4.2.6-standalone*",
+            )
+        )
 
         cmd_output = check_output(files[0], universal_newlines=True)
-        compare_file = open(os.path.join(
-            "tests",
-            "gbtestapp",
-            "correct_stdout.txt"), "r").read()
+        compare_file = open(
+            os.path.join("tests", "gbtestapp", "correct_stdout.txt"), "r"
+        ).read()
 
         assert cmd_output == compare_file
     else:
@@ -125,22 +134,20 @@ def test_executable(arguments):
 
 
 def test_filename_file(arguments):
-    """ Tests if GravityBee writes name of standalone app in output. """
+    """Tests if GravityBee writes name of standalone app in output."""
     package_generator = PackageGenerator(arguments)
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
-        with open(
-            os.path.join(FILE_DIR, "gravitybee-files.json"), "r"
-        ) as sa_file:
+        with open(os.path.join(FILE_DIR, "gravitybee-files.json"), "r") as sa_file:
             gb_files = json.loads(sa_file.read())
 
-        assert gb_files[0]['filename'].startswith("gbtestapp-4.2.6-standalone")
+        assert gb_files[0]["filename"].startswith("gbtestapp-4.2.6-standalone")
     else:
         assert False
 
 
 def test_file_label():
-    """ Test if GravityBee writes correct label in gravitybee-files.json. """
+    """Test if GravityBee writes correct label in gravitybee-files.json."""
 
     label_prefix = "GBTESTapp YO"
     arguments = Arguments(
@@ -149,17 +156,15 @@ def test_file_label():
         pkg_dir=os.path.join("tests", "gbtestapp"),
         sha=Arguments.OPTION_SHA_FILE,
         clean=True,
-        label_format=label_prefix + " {v} {ft} for {os}"
+        label_format=label_prefix + " {v} {ft} for {os}",
     )
     package_generator = PackageGenerator(arguments)
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
-        with open(
-            os.path.join(FILE_DIR, "gravitybee-files.json"), "r"
-        ) as sa_file:
+        with open(os.path.join(FILE_DIR, "gravitybee-files.json"), "r") as sa_file:
             gb_files = json.loads(sa_file.read())
 
-        assert gb_files[0]['label'].startswith(label_prefix)
+        assert gb_files[0]["label"].startswith(label_prefix)
     else:
         assert False
 
@@ -182,9 +187,11 @@ def test_file_sha(arguments):
         with open(package_generator.files["sha_w_path"], "r") as sha_file:
             sha_dict = json.loads(sha_file.read())
 
-        assert info['file_sha'] \
-            == PackageGenerator.get_hash(info['gen_file_w_path']) \
-            == sha_dict[info['gen_file']]
+        assert (
+            info["file_sha"]
+            == PackageGenerator.get_hash(info["gen_file_w_path"])
+            == sha_dict[info["gen_file"]]
+        )
     else:
         assert False
 
@@ -198,7 +205,7 @@ def latest_arguments():
         pkg_dir=os.path.join("tests", "gbtestapp"),
         sha=Arguments.OPTION_SHA_FILE,
         clean=True,
-        with_latest=True
+        with_latest=True,
     )
 
 
@@ -214,36 +221,104 @@ def test_latest(latest_arguments):
     if generated_okay == EXIT_OKAY:
 
         latest_standalone = package_generator.args.formats["name"].format(
-            an=package_generator.args.info['app_name'],
-            v='latest',
-            os=package_generator.args.info['operating_system'],
-            m=package_generator.args.info['machine_type']
+            an=package_generator.args.info["app_name"],
+            v="latest",
+            os=package_generator.args.info["operating_system"],
+            m=package_generator.args.info["machine_type"],
         )
 
-        sa_files = glob.glob(os.path.join(
-            package_generator.args.directories['staging'],
-            'latest',
-            latest_standalone + '*'
-        ))
+        sa_files = glob.glob(
+            os.path.join(
+                package_generator.args.directories["staging"],
+                "latest",
+                latest_standalone + "*",
+            )
+        )
 
         sha_file = package_generator.args.formats["sha"].format(
-            an=package_generator.args.info['app_name'],
-            v='latest',
-            os=package_generator.args.info['operating_system'],
-            m=package_generator.args.info['machine_type']
+            an=package_generator.args.info["app_name"],
+            v="latest",
+            os=package_generator.args.info["operating_system"],
+            m=package_generator.args.info["machine_type"],
         )
 
-        sha_files = glob.glob(os.path.join(
-            package_generator.args.directories['staging'],
-            'latest',
-            sha_file
-        ))
+        sha_files = glob.glob(
+            os.path.join(
+                package_generator.args.directories["staging"], "latest", sha_file
+            )
+        )
 
-        assert os.path.isdir(os.path.join(
-            package_generator.args.directories['staging'],
-            'latest')) \
-            and sa_files \
+        assert (
+            os.path.isdir(
+                os.path.join(package_generator.args.directories["staging"], "latest")
+            )
+            and sa_files
             and sha_files
+        )
+    else:
+        assert False
+
+
+@pytest.fixture
+def testapp2_arguments():
+    """Returns an Arguments instance using the included app.
+    This app tests packaging an app that has differently named packages
+    and also has multiple packages (gbtest2, gbextradata2)"""
+
+    return Arguments(
+        src_dir="src",
+        extra_data=["../gbextradata2"],
+        pkg_dir=os.path.join("tests", "testapp2"),
+        app_name="testapp2",
+        pkg_name="gbtest2",
+        sha=Arguments.OPTION_SHA_FILE,
+        clean=False,
+    )
+
+
+def test_testapp2_generation(testapp2_arguments):
+    """Tests generating the testapp2 executable."""
+    package_generator = PackageGenerator(testapp2_arguments)
+    generated_okay = package_generator.generate()
+
+    assert generated_okay == EXIT_OKAY
+
+
+def test_testapp2_executable(testapp2_arguments):
+    """Tests running the executable.
+    The pkg name is gbtest2, but the app name is testapp2,
+    so the exe will be named "testapp2".
+    """
+    package_generator = PackageGenerator(testapp2_arguments)
+    generated_okay = package_generator.generate()
+    if generated_okay == EXIT_OKAY:
+        files = glob.glob(
+            os.path.join(
+                package_generator.args.directories["staging"],
+                package_generator.args.info["app_version"],
+                "testapp2-4.2.6-standalone*",
+            )
+        )
+
+        cmd_output = check_output(files[0], universal_newlines=True)
+        compare_file = open(
+            os.path.join("tests", "testapp2", "correct_stdout.txt"), "r"
+        ).read()
+
+        assert cmd_output == compare_file
+    else:
+        assert False
+
+
+def test_testapp2_filename_file(testapp2_arguments):
+    """Tests if GravityBee writes name of standalone app in output."""
+    package_generator = PackageGenerator(testapp2_arguments)
+    generated_okay = package_generator.generate()
+    if generated_okay == EXIT_OKAY:
+        with open(os.path.join(FILE_DIR, "gravitybee-files.json"), "r") as sa_file:
+            gb_files = json.loads(sa_file.read())
+
+        assert gb_files[0]["filename"].startswith("testapp2-4.2.6-standalone")
     else:
         assert False
 
@@ -263,22 +338,22 @@ def test_clean(testing_defaults):
 
 def test_pkg_dir(testing_defaults):
     """Test pkg_dir default"""
-    assert testing_defaults.directories["pkg"] == '.'
+    assert testing_defaults.directories["pkg"] == "."
 
 
 def test_src_dir(testing_defaults):
     """Test src_dir default"""
-    assert testing_defaults.directories["src"] == '.'
+    assert testing_defaults.directories["src"] == "."
 
 
 def test_name_format(testing_defaults):
     """Test name_format default"""
-    assert testing_defaults.formats["name"] == '{an}-{v}-standalone-{os}-{m}'
+    assert testing_defaults.formats["name"] == "{an}-{v}-standalone-{os}-{m}"
 
 
 def test_sha_format(testing_defaults):
     """Test sha_format default"""
-    assert testing_defaults.formats["sha"] == '{an}-{v}-sha256-{os}-{m}.json'
+    assert testing_defaults.formats["sha"] == "{an}-{v}-sha256-{os}-{m}.json"
 
 
 def test_extra_data(testing_defaults):
@@ -288,26 +363,27 @@ def test_extra_data(testing_defaults):
 
 def test_work_dir(testing_defaults):
     """Test work_dir default"""
-    assert testing_defaults.directories["work"][:17] == os.path.join(
-        FILE_DIR,
-        'build')[:17]
+    assert (
+        testing_defaults.directories["work"][:17]
+        == os.path.join(FILE_DIR, "build")[:17]
+    )
 
 
 def test_console_script(testing_defaults):
     """Test console_script default"""
-    assert testing_defaults.info["console_script"] == 'gbtestapp'
+    assert testing_defaults.info["console_script"] == "gbtestapp"
 
 
 def test_app_version(testing_defaults):
     """Test app_version default"""
-    assert testing_defaults.info["app_version"] == '4.2.6'
+    assert testing_defaults.info["app_version"] == "4.2.6"
 
 
 def test_app_name(testing_defaults):
     """Test app_name default"""
-    assert testing_defaults.info["app_name"] == 'gbtestapp'
+    assert testing_defaults.info["app_name"] == "gbtestapp"
 
 
 def test_pkg_name(testing_defaults):
     """Test pkg_name default"""
-    assert testing_defaults.info["pkg_name"] == 'gbtestapp'
+    assert testing_defaults.info["pkg_name"] == "gbtestapp"
