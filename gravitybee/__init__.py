@@ -485,9 +485,12 @@ class PackageGenerator():
                 extradir += self.args.directories["src"] + os.sep
             extradir += self.args.info["pkg_name"] + os.sep + data
             # handle relative paths for extra data
-            pkg = os.path.normpath(self.args.info["pkg_name"] + "/" + data).replace("\\", "/")
+            pkg = os.path.normpath(
+                self.args.info["pkg_name"] + "/" + data
+            ).replace("\\", "/")
             # Normalize the path, replace backslashes with forward slashes
-            # Otherwise, we risk character literals (like \t) being in the path string
+            # Otherwise, we risk character literals (like \t) being in the
+            # path string
             extradir = os.path.normpath(extradir).replace("\\", "/")
             hook += "\ndatas.append(('"
             hook += extradir
