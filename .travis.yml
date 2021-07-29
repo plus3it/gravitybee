@@ -25,6 +25,7 @@ install:
   - python -m pip install -r requirements/test.txt
   - python -m pip install --editable .
   - python -m pip install --editable tests/gbtestapp
+  - python -m pip install --editable tests/testapp2
 script:
   - pytest
 jobs:
