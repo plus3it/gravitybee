@@ -1,6 +1,13 @@
 CHANGE LOG
 ==========
 
+0.2.0 - 2021.08.02
+-------------------
+* [FEATURE] Add option --hook-template that allows user to specify their own hook
+  template for PyInstaller.
+* [FIX] Update the included hook-template to work correctly when the pkg_name and
+  app_name are different.
+
 0.1.29 - 2020.01.15
 -------------------
 * [ENHANCEMENT] Remove pipenv files and update setup.cfg dependency versions.
