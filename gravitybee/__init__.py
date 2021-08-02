@@ -27,7 +27,7 @@ from string import Template
 import pyppyn
 from gravitybee.distutils_utils import fix_distutils
 
-__version__ = "0.1.87"
+__version__ = "0.2.0"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
@@ -231,6 +231,17 @@ class Arguments():
             )
         )
 
+        self.info["hook_template"] = kwargs.get(
+            'hook_template',
+            os.environ.get(
+                'GB_HOOK_TEMPLATE',
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "hook-template"
+                )
+            )
+        )
+
         pl_sys = platform.system().lower()
         self.info["operating_system"] = pl_sys if pl_sys != 'darwin' else 'osx'
 
@@ -257,6 +268,7 @@ class Arguments():
         logger.info("staging_dir: %s", self.directories["staging"])
         logger.info("with_latest: %s", self.flags["with_latest"])
         logger.info("sha: %s", self.info["sha"])
+        logger.info("hook_template: %s", self.info["hook_template"])
 
         if self.extra["data"] is not None:
             for extra_data in self.extra["data"]:
@@ -454,26 +466,35 @@ class PackageGenerator():
         # get the hook ready
         template = Template(
             open(
-                os.path.join(
-                    self.gb_dir,
-                    "hook-template"
-                ),
+                self.args.info["hook_template"],
                 "r"
             ).read()
         )
 
         hook = template.safe_substitute(
-            {'app_name': self.args.info["app_name"]})
+            {
+                'app_name': self.args.info["app_name"],
+                'pkg_name': self.args.info["pkg_name"]
+            })
 
         # 1 - extra data
         hook += "# collection extra data, if any (using --extra-data option)"
         for data in self.args.extra.get("data") or []:
+            extradir = self.args.directories["pkg"] + os.sep
+            if self.args.directories["src"] != ".":
+                extradir += self.args.directories["src"] + os.sep
+            extradir += self.args.info["pkg_name"] + os.sep + data
+            # handle relative paths for extra data
+            pkg = os.path.normpath(
+                self.args.info["pkg_name"] + "/" + data
+            ).replace("\\", "/")
+            # Normalize the path, replace backslashes with forward slashes
+            # Otherwise, we risk character literals (like \t) being in the
+            # path string
+            extradir = os.path.normpath(extradir).replace("\\", "/")
             hook += "\ndatas.append(('"
-            hook += self.args.directories["pkg"] + os.sep
-            if self.args.directories["src"] != '.':
-                hook += self.args.directories["src"] + os.sep
-            hook += self.args.info["pkg_name"] + os.sep + data
-            hook += "', '" + self.args.info["pkg_name"] + "/" + data + "'))"
+            hook += extradir
+            hook += "', '" + pkg + "'))"
             hook += "\n\n"
 
         # 2 - package metadata

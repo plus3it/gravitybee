@@ -43,6 +43,10 @@ jobs:
     displayName: install tests/gbtestapp
   - script: |
       call $(venvDirectory)/Scripts/activate.bat
+      python -m pip install --editable tests/testapp2
+    displayName: install tests/testapp2
+  - script: |
+      call $(venvDirectory)/Scripts/activate.bat
       python -m pip list
     displayName: pip list after
   - script: |

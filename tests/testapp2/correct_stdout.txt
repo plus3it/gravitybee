@@ -1,0 +1,12 @@
+[gbtest2] GravityBee Test App 2
+[gbtest2] The name of the package is gbtest2
+[gbtest2] Calling method in gbextradata2:
+[gbextradata2] GravityBee Extra Data
+[gbextradata2] The name of the package is gbextradata2
+[gbextradata2] SOME_CONSTANT: success
+[gbextradata2] some_data: All of this
+comes from
+the gbextradata2
+file called
+data_file.txt
+

@@ -249,6 +249,73 @@ def test_latest(latest_arguments):
 
 
 @pytest.fixture
+def testapp2_arguments():
+    """Returns an Arguments instance using the included app.
+    This app tests packaging an app that has differently named packages
+    and also has multiple packages (gbtest2, gbextradata2)"""
+
+    return Arguments(
+        src_dir="src",
+        extra_data=["../gbextradata2"],
+        pkg_dir=os.path.join("tests", "testapp2"),
+        app_name="testapp2",
+        pkg_name="gbtest2",
+        sha=Arguments.OPTION_SHA_FILE,
+        clean=False,
+    )
+
+
+def test_testapp2_generation(testapp2_arguments):
+    """Tests generating the testapp2 executable."""
+    package_generator = PackageGenerator(testapp2_arguments)
+    generated_okay = package_generator.generate()
+
+    assert generated_okay == EXIT_OKAY
+
+
+def test_testapp2_executable(testapp2_arguments):
+    """Tests running the executable.
+    The pkg name is gbtest2, but the app name is testapp2,
+    so the exe will be named "testapp2".
+    """
+    package_generator = PackageGenerator(testapp2_arguments)
+    generated_okay = package_generator.generate()
+    if generated_okay == EXIT_OKAY:
+        files = glob.glob(
+            os.path.join(
+                package_generator.args.directories["staging"],
+                package_generator.args.info["app_version"],
+                "testapp2-4.2.6-standalone*",
+            )
+        )
+
+        cmd_output = check_output(files[0], universal_newlines=True)
+        compare_file = open(
+            os.path.join("tests", "testapp2", "correct_stdout.txt"), "r"
+        ).read()
+
+        assert cmd_output == compare_file
+    else:
+        assert False
+
+
+def test_testapp2_filename_file(testapp2_arguments):
+    """Tests if GravityBee writes name of standalone app in output."""
+    package_generator = PackageGenerator(testapp2_arguments)
+    generated_okay = package_generator.generate()
+    if generated_okay == EXIT_OKAY:
+        with open(os.path.join(
+            FILE_DIR,
+            "gravitybee-files.json"
+        ), "r") as sa_file:
+            gb_files = json.loads(sa_file.read())
+
+        assert gb_files[0]["filename"].startswith("testapp2-4.2.6-standalone")
+    else:
+        assert False
+
+
+@pytest.fixture
 def testing_defaults():
     """Return an Arguments instance for testing defaults"""
     if not os.getcwd().endswith(os.path.join("tests", "gbtestapp")):

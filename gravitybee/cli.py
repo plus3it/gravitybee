@@ -91,6 +91,14 @@ click.disable_unicode_literals_warning = True
     help="Relative path for work directory."
 )
 @click.option(
+    '--hook-template',
+    '-t',
+    'hook_template',
+    default=None,
+    envvar='GB_HOOK_TEMPLATE',
+    help="Custom hook template for pyinstaller."
+)
+@click.option(
     '--onedir',
     'onedir',
     default=False,
