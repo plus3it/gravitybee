@@ -1,0 +1,19 @@
+from PyInstaller.utils.hooks import copy_metadata, collect_data_files,\
+    collect_submodules
+
+# main package related hook information
+hiddenimports = (
+    collect_submodules('gbtestapp')
+)
+
+datas = copy_metadata('gbtestapp')
+datas += collect_data_files('gbtestapp')
+# collection extra data, if any (using --extra-data option)
+datas.append(('tests/gbtestapp/src/gbtestapp/gbextradata', 'gbtestapp/gbextradata'))
+
+# add dependency metadata
+datas += copy_metadata('backoff')
+datas += copy_metadata('click')
+datas += copy_metadata('defusedxml')
+datas += copy_metadata('pypiwin32')
+datas += copy_metadata('six')

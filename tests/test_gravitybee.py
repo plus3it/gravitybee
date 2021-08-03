@@ -124,6 +124,64 @@ def test_executable(arguments):
         assert False
 
 
+def test_hook():
+    """ Tests that the hook generated matches what is expected. """
+    arguments = Arguments(
+        src_dir="src",
+        extra_data=["gbextradata"],
+        pkg_dir=os.path.join("tests", "gbtestapp"),
+        sha=Arguments.OPTION_SHA_FILE,
+        clean=False
+    )
+    package_generator = PackageGenerator(arguments)
+
+    generated_okay = package_generator.generate()
+    if generated_okay == EXIT_OKAY:
+        generated_hook = open(os.path.join(
+            package_generator.args.directories['work'],
+            'hooks',
+            'hook-gbtestapp.py'), "r").read()
+        compare_file = open(os.path.join(
+            "tests",
+            "gbtestapp",
+            "correct_hook.txt"), "r").read()
+
+        assert generated_hook == compare_file
+    else:
+        assert False
+
+
+def test_hook_with_extras():
+    """
+    Tests that the hook generated matches what is expected when including
+    "extras" packages in the app
+    """
+    arguments = Arguments(
+        src_dir="src",
+        extra_data=["gbextradata"],
+        pkg_dir=os.path.join("tests", "gbtestapp"),
+        sha=Arguments.OPTION_SHA_FILE,
+        include_setup_extras=True,
+        clean=False
+    )
+    package_generator = PackageGenerator(arguments)
+
+    generated_okay = package_generator.generate()
+    if generated_okay == EXIT_OKAY:
+        generated_hook = open(os.path.join(
+            package_generator.args.directories['work'],
+            'hooks',
+            'hook-gbtestapp.py'), "r").read()
+        compare_file = open(os.path.join(
+            "tests",
+            "gbtestapp",
+            "correct_hook_with_extras.txt"), "r").read()
+
+        assert generated_hook == compare_file
+    else:
+        assert False
+
+
 def test_filename_file(arguments):
     """ Tests if GravityBee writes name of standalone app in output. """
     package_generator = PackageGenerator(arguments)
@@ -261,7 +319,7 @@ def testapp2_arguments():
         app_name="testapp2",
         pkg_name="gbtest2",
         sha=Arguments.OPTION_SHA_FILE,
-        clean=False,
+        clean=True,
     )
 
 
