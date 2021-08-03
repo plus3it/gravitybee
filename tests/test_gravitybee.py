@@ -6,6 +6,7 @@ import os
 import json
 
 from subprocess import check_output
+import platform
 
 import pytest
 from gravitybee import Arguments, PackageGenerator, EXIT_OKAY, FILE_DIR
@@ -141,10 +142,14 @@ def test_hook():
             package_generator.args.directories['work'],
             'hooks',
             'hook-gbtestapp.py'), "r").read()
+        suffix = ""
+        if platform.system().lower() == "windows":
+            suffix = "_windows"
+
         compare_file = open(os.path.join(
             "tests",
             "gbtestapp",
-            "correct_hook.txt"), "r").read()
+            "correct_hook" + suffix + ".txt"), "r").read()
 
         assert generated_hook == compare_file
     else:
@@ -172,10 +177,14 @@ def test_hook_with_extras():
             package_generator.args.directories['work'],
             'hooks',
             'hook-gbtestapp.py'), "r").read()
+        suffix = ""
+        if platform.system().lower() == "windows":
+            suffix = "_windows"
+
         compare_file = open(os.path.join(
             "tests",
             "gbtestapp",
-            "correct_hook_with_extras.txt"), "r").read()
+            "correct_hook_with_extras" + suffix + ".txt"), "r").read()
 
         assert generated_hook == compare_file
     else:

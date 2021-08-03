@@ -14,5 +14,7 @@ datas.append(('tests/gbtestapp/src/gbtestapp/gbextradata', 'gbtestapp/gbextradat
 # add dependency metadata
 datas += copy_metadata('backoff')
 datas += copy_metadata('click')
+datas += copy_metadata('defusedxml')
+datas += copy_metadata('pypiwin32')
 datas += copy_metadata('six')
 datas += copy_metadata('pytest')
