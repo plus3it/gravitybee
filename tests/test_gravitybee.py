@@ -114,10 +114,12 @@ def test_executable(arguments):
         ))
 
         cmd_output = check_output(files[0], universal_newlines=True)
-        compare_file = open(os.path.join(
-            "tests",
-            "gbtestapp",
-            "correct_stdout.txt"), "r").read()
+
+        with open(
+            os.path.join("tests", "gbtestapp", "correct_stdout.txt"),
+            "r"
+        ) as compare:
+            compare_file = compare.read()
 
         assert cmd_output == compare_file
     else:
@@ -290,9 +292,11 @@ def test_testapp2_executable(testapp2_arguments):
         )
 
         cmd_output = check_output(files[0], universal_newlines=True)
-        compare_file = open(
+
+        with open(
             os.path.join("tests", "testapp2", "correct_stdout.txt"), "r"
-        ).read()
+        ) as compare:
+            compare_file = compare.read()
 
         assert cmd_output == compare_file
     else:

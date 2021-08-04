@@ -464,12 +464,8 @@ class PackageGenerator():
 
     def _create_hook(self):
         # get the hook ready
-        template = Template(
-            open(
-                self.args.info["hook_template"],
-                "r"
-            ).read()
-        )
+        with open(os.path.join(self.gb_dir, "hook-template"), "r") as hook_fh:
+            template = Template(hook_fh.read())
 
         hook = template.safe_substitute(
             {
