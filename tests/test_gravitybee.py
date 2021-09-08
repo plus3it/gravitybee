@@ -117,7 +117,8 @@ def test_executable(arguments):
 
         with open(
             os.path.join("tests", "gbtestapp", "correct_stdout.txt"),
-            "r"
+            "r",
+            encoding="utf8",
         ) as compare:
             compare_file = compare.read()
 
@@ -132,7 +133,9 @@ def test_filename_file(arguments):
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
         with open(
-            os.path.join(FILE_DIR, "gravitybee-files.json"), "r"
+            os.path.join(FILE_DIR, "gravitybee-files.json"),
+            "r",
+            encoding="utf8",
         ) as sa_file:
             gb_files = json.loads(sa_file.read())
 
@@ -157,7 +160,9 @@ def test_file_label():
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
         with open(
-            os.path.join(FILE_DIR, "gravitybee-files.json"), "r"
+            os.path.join(FILE_DIR, "gravitybee-files.json"),
+            "r",
+            encoding="utf8",
         ) as sa_file:
             gb_files = json.loads(sa_file.read())
 
@@ -178,10 +183,14 @@ def test_file_sha(arguments):
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
         # get the info from info file
-        with open(PackageGenerator.INFO_FILE, "r") as info_file:
+        with open(
+            PackageGenerator.INFO_FILE, "r", encoding="utf8"
+        ) as info_file:
             info = json.loads(info_file.read())
 
-        with open(package_generator.files["sha_w_path"], "r") as sha_file:
+        with open(
+            package_generator.files["sha_w_path"], "r", encoding="utf8"
+        ) as sha_file:
             sha_dict = json.loads(sha_file.read())
 
         assert info['file_sha'] \
@@ -294,7 +303,9 @@ def test_testapp2_executable(testapp2_arguments):
         cmd_output = check_output(files[0], universal_newlines=True)
 
         with open(
-            os.path.join("tests", "testapp2", "correct_stdout.txt"), "r"
+            os.path.join("tests", "testapp2", "correct_stdout.txt"),
+            "r",
+            encoding="utf8",
         ) as compare:
             compare_file = compare.read()
 
@@ -311,7 +322,7 @@ def test_testapp2_filename_file(testapp2_arguments):
         with open(os.path.join(
             FILE_DIR,
             "gravitybee-files.json"
-        ), "r") as sa_file:
+        ), "r", encoding="utf8") as sa_file:
             gb_files = json.loads(sa_file.read())
 
         assert gb_files[0]["filename"].startswith("testapp2-4.2.6-standalone")
