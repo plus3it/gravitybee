@@ -476,12 +476,10 @@ class PackageGenerator():
 
     def _generate_hook_text_from_template(self):
         # get the hook ready
-        template = Template(
-            open(
-                self.args.info["hook_template"],
-                "r"
-            ).read()
-        )
+        with open(
+            os.path.join(self.gb_dir, "hook-template"), "r", encoding="utf8"
+        ) as hook_fh:
+            template = Template(hook_fh.read())
 
         hook = template.safe_substitute(
             {
@@ -529,7 +527,7 @@ class PackageGenerator():
             'hooks',
             "hook-" + self.args.info["pkg_name"] + ".py"
         )
-        with open(self.files["hook"], "w+") as hook_file:
+        with open(self.files["hook"], "w+", encoding="utf8") as hook_file:
             hook_file.write(hook)
 
         logger.info("Created hook file: %s", self.files["hook"])
@@ -562,7 +560,9 @@ class PackageGenerator():
 
                 logger.info("SHA256 hash file: %s", self.files["sha"])
 
-                with open(self.files["sha"], 'w') as sha_file:
+                with open(
+                    self.files["sha"], 'w', encoding="utf8"
+                ) as sha_file:
                     sha_file.write(json.dumps(sha_dict))
 
     def _stage_artifacts(self):
@@ -716,7 +716,9 @@ class PackageGenerator():
             "Writing information file: %s",
             PackageGenerator.INFO_FILE
         )
-        with open(PackageGenerator.INFO_FILE, 'w') as info_file:
+        with open(
+            PackageGenerator.INFO_FILE, 'w', encoding="utf8"
+        ) as info_file:
             info_file.write(json.dumps(gb_info))
 
         return gb_info
@@ -774,7 +776,9 @@ class PackageGenerator():
                 "Writing files file: %s",
                 PackageGenerator.FILES_FILE
             )
-            with open(PackageGenerator.FILES_FILE, 'w') as file_file:
+            with open(
+                PackageGenerator.FILES_FILE, 'w', encoding="utf8"
+            ) as file_file:
                 file_file.write(json.dumps(gb_files))
 
             # ENVIRONS ----------------------------------------------
