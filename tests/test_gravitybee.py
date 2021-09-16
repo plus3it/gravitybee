@@ -4,6 +4,7 @@
 import glob
 import os
 import json
+from pathlib import Path
 
 from subprocess import check_output
 import platform
@@ -12,9 +13,9 @@ import pytest
 from gravitybee import Arguments, PackageGenerator, EXIT_OKAY, FILE_DIR
 
 
-# should be first so that other tests haven't created files
 def test_no_output():
-    """Makes sure that when no output flag is on, no files are created."""
+    """Makes sure that when no output flag is on, no files are created.
+        Should be run first so that other tests haven't created files"""
     args = Arguments(
         src_dir="src",
         extra_data=["gbextradata"],
@@ -115,13 +116,8 @@ def test_executable(arguments):
         ))
 
         cmd_output = check_output(files[0], universal_newlines=True)
-
-        with open(
-            os.path.join("tests", "gbtestapp", "correct_stdout.txt"),
-            "r",
-            encoding="utf8",
-        ) as compare:
-            compare_file = compare.read()
+        compare_file = (Path("tests") / "gbtestapp" /
+                        "correct_stdout.txt").read_text(encoding="utf-8")
 
         assert cmd_output == compare_file
     else:
@@ -141,18 +137,15 @@ def test_hook():
 
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
-        generated_hook = open(os.path.join(
-            package_generator.args.directories['work'],
-            'hooks',
-            'hook-gbtestapp.py'), "r").read()
+        generated_hook = (Path(package_generator.args.directories['work']) /
+                          'hooks' / 'hook-gbtestapp.py'
+                          ).read_text(encoding='utf-8')
         suffix = ""
         if platform.system().lower() == "windows":
             suffix = "_windows"
 
-        compare_file = open(os.path.join(
-            "tests",
-            "gbtestapp",
-            "correct_hook" + suffix + ".txt"), "r").read()
+        compare_file = (Path("tests") / "gbtestapp" / ("correct_hook" +
+                        suffix + ".txt")).read_text(encoding='utf-8')
 
         assert generated_hook == compare_file
     else:
@@ -176,18 +169,15 @@ def test_hook_with_extras():
 
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
-        generated_hook = open(os.path.join(
-            package_generator.args.directories['work'],
-            'hooks',
-            'hook-gbtestapp.py'), "r").read()
+        generated_hook = (Path(package_generator.args.directories['work']) /
+                          'hooks' / 'hook-gbtestapp.py'
+                          ).read_text(encoding='utf-8')
         suffix = ""
         if platform.system().lower() == "windows":
             suffix = "_windows"
-
-        compare_file = open(os.path.join(
-            "tests",
-            "gbtestapp",
-            "correct_hook_with_extras" + suffix + ".txt"), "r").read()
+        compare_file = (Path("tests") / "gbtestapp" /
+                        ("correct_hook_with_extras" + suffix + ".txt")
+                        ).read_text(encoding='utf-8')
 
         assert generated_hook == compare_file
     else:
@@ -386,11 +376,8 @@ def test_testapp2_filename_file(testapp2_arguments):
     package_generator = PackageGenerator(testapp2_arguments)
     generated_okay = package_generator.generate()
     if generated_okay == EXIT_OKAY:
-        with open(os.path.join(
-            FILE_DIR,
-            "gravitybee-files.json"
-        ), "r", encoding="utf8") as sa_file:
-            gb_files = json.loads(sa_file.read())
+        sa_file = (Path(FILE_DIR) / "gravitybee-files.json")
+        gb_files = json.loads(sa_file.read_text(encoding='utf-8'))
 
         assert gb_files[0]["filename"].startswith("testapp2-4.2.6-standalone")
     else:
