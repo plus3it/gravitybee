@@ -72,120 +72,119 @@ Local logging can be configured in ``gravitybee/logging.conf``.
 
 Options:
 
-================  ==================    ==========================================
-ENV VAR           CL Options            Desciption
-================  ==================    ==========================================
-GB_APP_NAME       --app-name, -a        The name that will appear as part of the
-                                        final standalone application name.
-                                        *Default:* ``name`` *from setup.py and/or
-                                        setup.cfg.*
-GB_PKG_NAME       --pkg-name, -n        The package name for the application you are
-                                        building.
-                                        *Default: First value in* ``packages`` *from
-                                        setup.py and/or setup.cfg,
-                                        or if not found, the value from --app-name.*
-GB_SCRIPT         --script, -s          The path to the application file installed by
-                                        ``pip`` when you installed
-                                        your application. Depending on your
-                                        configuration, this may be determined by
-                                        ``options.entry_points.console_scripts`` from
-                                        ``setup.py`` and/or ``setup.cfg``.
-                                        *Default:* ``$VIRTUAL_ENV/bin/app_name``
-GB_SRC_DIR        --src-dir, -d         The relative path of the package containing
-                                        your application.
-                                        *Default:* ``.``
-GB_PKG_DIR        --pkg-dir, -p         The relative or absolute path of the package
-                                        containing your application.
-                                        This directory must contain a
-                                        ``setup.py`` file.
-                                        *Default:* ``.``
-GB_EXTRA_DATA     --extra-data, -e      Relative to package directory, any extra
-                                        directories or files that need
-                                        to be included, that wouldn't normally
-                                        be included as Python code. Can be
-                                        used multiple times.
-                                        *Default: None*
-GB_WORK_DIR       --work-dir, -w        Directory for use by GravityBee to build
-                                        application. Cannot be an existing
-                                        directory as it will be deleted if the
-                                        clean
-                                        option is used.
-                                        *Default:* ``.gravitybee/build/<uuid>``
-GB_ONEDIR         --onedir              Instead of packaging into one file,
-                                        package in one directory. This option
-                                        is not compatible with producing a SHA
-                                        hash since a hash is produced on a
-                                        single file. This option may be useful
-                                        for debugging runtimes errors in built
-                                        applications.
-                                        *Default: Not*
-GB_CLEAN          --clean, -c           Flag indicating whether to
-                                        clean up the work directory
-                                        after
-                                        the build.
-                                        *Default: Not*
-GB_NAME_FORMAT    --name-format, -f     Format to be used in naming the standalone
-                                        application. Can include
-                                        {an}, {v}, {os}, {m}
-                                        for app name, version, os, and machine
-                                        type respectively. On Windows, ``.exe``
-                                        will be added automatidally.
-                                        *Default:* ``{an}-{v}-standalone-{os}-{m}``
-GB_SHA_FORMAT     --sha-format          Format to be used in naming the SHA hash
-                                        file. Can include
-                                        {an}, {v}, {os}, {m}
-                                        for app name, version, os, and machine
-                                        type respectively.
-                                        *Default:* ``{an}-{v}-sha256-{os}-{m}.json``
-GB_LABEL_FORMAT   --label-format        Format to be used in labeling the standalone
-                                        application in `gravitybee-files.json`.
-                                        Can include {An},
-                                        {an}, {v}, {os}, {m}, and {ft}
-                                        for capitalized application
-                                        name, lowercase app name, version, OS,
-                                        machine, and file type ("Standalone
-                                        Executable" or
-                                        "Standalone Executable SHA256 Hash")
-                                        respectively. On Windows, ``.exe``
-                                        will be added automatically.
-                                        *Default:* ``{An} {v} {ft} for {os} [GravityBee Build]``
-GB_NO_FILE        --no-file             Flag indicating to not write
-                                        the output files (see below).
-                                        If the ``--sha`` option is used to
-                                        write a
-                                        hash to a file, that file will
-                                        still be
-                                        written regardless.
-                                        *Default: Will write
-                                        files*
-GB_SHA            --sha                 Option of where to put SHA256
-                                        hash for generated file.
-                                        Valid options are ``file``
-                                        (create a separate file with
-                                        hash), or ``info`` (only
-                                        include the hash in the file
-                                        info output). *Default:* ``info``
-GB_STAGING_DIR    --staging-dir         Option to indicate where GravityBee
-                                        should stage build artifacts
-                                        (standalone executable and hash
-                                        file). Two subdirectories can
-                                        be created, one based on version
-                                        and the other called "latest."
-                                        *Default:* ``.gravitybee/dist``
-GB_WITH_LATEST    --with-latest         Flag to indicate if GravityBee
-                                        should create a "latest"
-                                        directory in the staging area
-                                        with a copy of the artifacts.
-                                        *Default: Not*
-GB_EXTRA_MODULES  --extra-modules       Any extra modules to be included with
-                                        the standalone executable.
-                                        *Default: None*
-GB_EXTRA_PKGS     --extra-pkgs          Any extra packages to be included with
-                                        the standalone executable.
-                                        *Default: None*
-VIRTUAL_ENV                             If using conda env set VIRTUAL_ENV to
-                                        conda env directory
-================  ==================    ==========================================
+======================= ======================  ==========================================
+ENV VAR                 CL Options              Desciption
+======================= ======================  ==========================================
+GB_APP_NAME             --app-name, -a          The name that will appear as part of the
+                                                final standalone application name.
+                                                *Default:* ``name`` *from setup.py and/or
+                                                setup.cfg.*
+GB_PKG_NAME             --pkg-name, -n          The package name for the application you are
+                                                building.
+                                                *Default: First value in* ``packages`` *from
+                                                setup.py and/or setup.cfg,
+                                                or if not found, the value from --app-name.*
+GB_SCRIPT               --script, -s            The path to the application file installed by
+                                                ``pip`` when you installed
+                                                your application. Depending on your
+                                                configuration, this may be determined by
+                                                ``options.entry_points.console_scripts`` from
+                                                ``setup.py`` and/or ``setup.cfg``.
+                                                *Default:* ``$VIRTUAL_ENV/bin/app_name``
+GB_SRC_DIR              --src-dir, -d           The relative path of the package containing
+                                                your application.
+                                                *Default:* ``.``
+GB_PKG_DIR              --pkg-dir, -p           The relative or absolute path of the package
+                                                containing your application.
+                                                This directory must contain a
+                                                ``setup.py`` file.
+                                                *Default:* ``.``
+GB_EXTRA_DATA           --extra-data, -e        Relative to package directory, any extra
+                                                directories or files that need
+                                                to be included, that wouldn't normally
+                                                be included as Python code. Can be
+                                                used multiple times.
+                                                *Default: None*
+GB_WORK_DIR             --work-dir, -w          Directory for use by GravityBee to build
+                                                application. Cannot be an existing
+                                                directory as it will be deleted if the
+                                                clean voption is used.
+                                                *Default:* ``.gravitybee/build/<uuid>``
+GB_ONEDIR               --onedir                Instead of packaging into one file,
+                                                package in one directory. This option
+                                                is not compatible with producing a SHA
+                                                hash since a hash is produced on a
+                                                single file. This option may be useful
+                                                for debugging runtimes errors in built
+                                                applications.
+                                                *Default: Not*
+GB_CLEAN                --clean, -c             Flag indicating whether to
+                                                clean up the work directory
+                                                after the build.
+                                                *Default: Not*
+GB_NAME_FORMAT          --name-format, -f       Format to be used in naming the standalone
+                                                application. Can include
+                                                {an}, {v}, {os}, {m}
+                                                for app name, version, os, and machine
+                                                type respectively. On Windows, ``.exe``
+                                                will be added automatidally.
+                                                *Default:* ``{an}-{v}-standalone-{os}-{m}``
+GB_SHA_FORMAT           --sha-format            Format to be used in naming the SHA hash
+                                                file. Can include
+                                                {an}, {v}, {os}, {m}
+                                                for app name, version, os, and machine
+                                                type respectively.
+                                                *Default:* ``{an}-{v}-sha256-{os}-{m}.json``
+GB_LABEL_FORMAT         --label-format          Format to be used in labeling the standalone
+                                                application in ``gravitybee-files.json``.
+                                                Can include {An},
+                                                {an}, {v}, {os}, {m}, and {ft}
+                                                for capitalized application
+                                                name, lowercase app name, version, OS,
+                                                machine, and file type ("Standalone
+                                                Executable" or
+                                                "Standalone Executable SHA256 Hash")
+                                                respectively. On Windows, ``.exe``
+                                                will be added automatically.
+                                                *Default:* ``{An} {v} {ft} for {os} [GravityBee Build]``
+GB_NO_FILE              --no-file               Flag indicating to not write
+                                                the output files (see below).
+                                                If the ``--sha`` option is used to
+                                                write a hash to a file, that file will
+                                                still be written regardless.
+                                                *Default: Will write files*
+GB_SHA                  --sha                   Option of where to put SHA256
+                                                hash for generated file.
+                                                Valid options are ``file``
+                                                (create a separate file with
+                                                hash), or ``info`` (only
+                                                include the hash in the file
+                                                info output). *Default:* ``info``
+GB_STAGING_DIR          --staging-dir           Option to indicate where GravityBee
+                                                should stage build artifacts
+                                                (standalone executable and hash
+                                                file). Two subdirectories can
+                                                be created, one based on version
+                                                and the other called "latest."
+                                                *Default:* ``.gravitybee/dist``
+GB_WITH_LATEST          --with-latest           Flag to indicate if GravityBee
+                                                should create a "latest"
+                                                directory in the staging area
+                                                with a copy of the artifacts.
+                                                *Default: Not*
+GB_INCLUDE_SETUP_EXTRAS --include-setup-extras  Includes any 'extras' modules listed in
+                                                setup.py/cfg standalone application. (Such as
+                                                packages marked 'build', 'docs', 'check', etc.)
+                                                *Default: False*
+GB_EXTRA_MODULES        --extra-modules         Any extra modules to be included with
+                                                the standalone executable.
+                                                *Default: None*
+GB_EXTRA_PKGS           --extra-pkgs            Any extra packages to be included with
+                                                the standalone executable.
+                                                *Default: None*
+VIRTUAL_ENV                                     If using conda env set VIRTUAL_ENV to
+                                                conda env directory
+======================= ======================  ==========================================
 
 If you are using environment variables, you could set them up like
 this.

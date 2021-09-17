@@ -27,7 +27,7 @@ from string import Template
 import pyppyn
 from gravitybee.distutils_utils import fix_distutils
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 EXIT_OKAY = 0
 EXIT_NOT_OKAY = 1
 FILE_DIR = ".gravitybee"
@@ -171,6 +171,14 @@ class Arguments():
             logger.error("work_dir must not exist. It may be deleted.")
             raise FileExistsError
 
+        self.flags["include_setup_extras"] = kwargs.get(
+            'include_setup_extras',
+            os.environ.get(
+                'GB_INCLUDE_SETUP_EXTRAS',
+                False
+            )
+        )
+
         self.flags["one_dir"] = kwargs.get(
             'onedir',
             os.environ.get(
@@ -265,6 +273,10 @@ class Arguments():
         logger.info("clean: %s", self.flags["clean"])
         logger.info("work_dir: %s", self.directories["work"])
         logger.info("onedir: %s", self.flags["one_dir"])
+        logger.info(
+            "include_setup_extras: %s",
+            self.flags["include_setup_extras"]
+        )
         logger.info("staging_dir: %s", self.directories["staging"])
         logger.info("with_latest: %s", self.flags["with_latest"])
         logger.info("sha: %s", self.info["sha"])
@@ -462,7 +474,7 @@ class PackageGenerator():
         logger.info("Package generator:")
         logger.info("standalone_name: %s", self.standalone_name)
 
-    def _create_hook(self):
+    def _generate_hook_text_from_template(self):
         # get the hook ready
         with open(
             os.path.join(self.gb_dir, "hook-template"), "r", encoding="utf8"
@@ -497,11 +509,17 @@ class PackageGenerator():
 
         # 2 - package metadata
         hook += "# add dependency metadata"
-        for package in self.args.pyppy.get_required():
+        for package in self.args.pyppy.get_required(
+            self.args.flags["include_setup_extras"]
+        ):
             # datas += copy_metadata(pkg)
             hook += "\ndatas += copy_metadata('" + package + "')"
 
         hook += "\n"
+        return hook
+
+    def _create_hook(self):
+        hook = self._generate_hook_text_from_template()
 
         # 3 - write file
         self.files["hook"] = os.path.join(
@@ -670,6 +688,9 @@ class PackageGenerator():
         gb_info['clean'] = self.args.flags["clean"]
         gb_info['work_dir'] = self.args.directories["work"]
         gb_info['onedir'] = self.args.flags["one_dir"]
+        gb_info['include_setup_extras'] = self.args.flags[
+            "include_setup_extras"
+        ]
         gb_info['staging_dir'] = self.args.directories["staging"]
         gb_info['with_latest'] = self.args.flags["with_latest"]
         gb_info['gen_file'] = self.files["gen"]
@@ -869,7 +890,9 @@ class PackageGenerator():
         for extra_package in list(
                 set(self.EXTRA_REQD_PACKAGES) | set(self.args.extra["pkgs"])
         ):
-            if extra_package not in self.args.pyppy.get_required():
+            if extra_package not in self.args.pyppy.get_required(
+                    self.args.flags["include_setup_extras"]
+            ):
                 pyppyn.ConfigRep.install_package(extra_package)
 
         for extra_module in list(

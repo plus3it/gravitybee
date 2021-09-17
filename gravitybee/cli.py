@@ -83,6 +83,16 @@ click.disable_unicode_literals_warning = True
     + "standalone application. Can be used multiple times."
 )
 @click.option(
+    '--include-setup-extras',
+    'include_setup_extras',
+    default=False,
+    envvar='GB_INCLUDE_SETUP_EXTRAS',
+    is_flag=True,
+    help="Includes any 'extras' modules listed in "
+    + "setup.py/cfg standalone application. (Such as "
+    + "packages marked 'build', 'docs', 'check', etc.)"
+)
+@click.option(
     '--work-dir',
     '-w',
     'work_dir',
