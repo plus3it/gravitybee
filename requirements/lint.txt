@@ -2,5 +2,5 @@
 -r ./pytest.txt
 -r ./install.txt
 
-flake8==3.9.2
+flake8==4.0.1
 pylint==2.11.1
