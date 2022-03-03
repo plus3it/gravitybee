@@ -15,7 +15,7 @@ jobs:
 - job: test
   displayName: test
   pool:
-    vmImage: 'vs2017-win2016'
+    vmImage: windows-2019
   steps:
   - task: UsePythonVersion@0
     displayName: Use Python $(pythonVersion)
