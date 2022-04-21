@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+0.3.0 - 2022.04.21
+-------------------
+* [DEPRECATION] Deprecates Python 3.6 support.
+
 0.2.0 - 2021.08.02
 -------------------
 * [FEATURE] Add option --hook-template that allows user to specify their own hook

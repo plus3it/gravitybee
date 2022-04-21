@@ -1,14 +1,15 @@
 version: ~> 1.0
-dist: bionic
+dist: focal
 language: python
 stages:
   - lint
   - test
   - deploy
 python:
-  - "3.6"
   - "3.7"
   - "3.8"
+  - "3.9"
+  - "3.10"
 
 env:
   global:
@@ -31,7 +32,7 @@ script:
 jobs:
   include:
     - stage: lint
-      python: 3.6
+      python: 3.8
       install:
         - python -m pip install -r requirements/lint.txt
         - python -m pip install --editable .
@@ -41,7 +42,7 @@ jobs:
         - flake8
     - stage: deploy
       if: branch = master AND type != pull_request
-      python: 3.6
+      python: 3.8
       env:
         - JOB="Deploy to Test PyPI"
       install: skip
@@ -61,7 +62,7 @@ jobs:
             condition: '"$PRIOR_VERSION" = "$RELEASE_VERSION"'
     - stage: deploy
       if: branch = master AND type != pull_request
-      python: 3.6
+      python: 3.8
       env:
         - JOB="Deploy to GitHub Releases"
         - RELEASE_BODY="* [$THIS_REPO v$RELEASE_VERSION CHANGELOG](https://github.com/$OWNER/$THIS_REPO/compare/$PRIOR_VERSION...$RELEASE_VERSION)"
@@ -83,7 +84,7 @@ jobs:
             condition: '"$PRIOR_VERSION" != "$RELEASE_VERSION"'
     - stage: deploy
       if: tag is present
-      python: 3.6
+      python: 3.8
       env:
         - JOB="Deploy to PyPI"
       install: skip
