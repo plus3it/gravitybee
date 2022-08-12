@@ -2,5 +2,5 @@
 -r ./pytest.txt
 -r ./install.txt
 
-setuptools==64.0.0
+setuptools==64.0.2
 six==1.16.0
