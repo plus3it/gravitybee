@@ -11,6 +11,9 @@ python:
   - "3.9"
   - "3.10"
 
+git:
+  depth: false
+
 env:
   global:
     - THIS_REPO="${TRAVIS_REPO_SLUG#*/}"
