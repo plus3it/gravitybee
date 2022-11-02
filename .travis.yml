@@ -66,7 +66,7 @@ jobs:
           username: plus3it
           password:
             secure: EYOVDbp6hOPNqPa9KtnFUwt7Wl1IDh1kCRylsrRgGARIzmuaZ/8DC94pEsevff2Wvq5GSLWgZka57bxxyWz7Ck3BEeYrjFI7Z1oFE+ML8/CsmghwLdBkuL4WqPE1UmKExrQdvwRUeYB0qCZl4zJ4K5ndkC+u4GX/9evL9D3H4bNXFt0pt6yJBC0XqG4Eb1QdZ4Dui9AXTUwWcRirsXy6UKY54li/4T2EtxSPPzMUVPta/4aVE6UuW2Dk5se4c4SxnpuW69rQkYjeB3j7ipPimW0053hhVvT6DyCiMecTfgGgzVihiep0HISOh06frxQoFeJFVPwGurNxwQ4sVXaPA9wATQtrmfgFjOwD5EX5TEBlpYn1EshJhk+PiDmgZcTTanK8Z5CI/nwrWqxkhIfAlSdLqGTqG5MCT52+LNYxVXwWM7aTyzl5RuqSGmjGwgBXlYlSNnTRDLZFwwW4ntT5fqOY883Q2GfZ+RSmqofFTC1x+/KyfCSTqG3L114OhZ5jjOIsFMcKi6yRdXY37V3FJw0FhM1EiWOOkgP5VYKQ0WpEgbbuF+oCUBfd3Sr/DVHBsQ8TgIVzQBHtFEIvvuNLTzyfCMQFZYI7gN7+AhNO5lHHLb6PXTZ6tsc+jp0qO1SMBwiH2MsoEYs3sRDmxCiBoa6I6PFc3ex4EaOcYpBuoWM=
-          cleanup: false
+          skip_cleanup: true
           upload_docs: false
           on:
             branch: master
@@ -87,7 +87,7 @@ jobs:
           target_commitish: $TRAVIS_COMMIT
           release_notes: $RELEASE_BODY
           draft: false
-          cleanup: false
+          skip_cleanup: true
           token:
             secure: EAzZCo6RRcdheI4/uEz6RiAqySWUp77g6sOirtbV3kPoJC0HA5ws1+qzWkMNKghQMo6y1eBxwU/tv6CkjXGygZKrs/ZpgfjTtd0Mqe12HN8+0JX9MV/UHpzh3M10QthqflpV+WsG0iAyZvlkJnvtXIFHSjTQMedB7EyPdicZniXXBdGbPoJWU2PBbmA0TI5U6ksP+DtXrvNWP9zpQq06mqO0KPH4AhfB2A638fOJWBbDhWH9BukzIJgh6qvpx6601LGX5uGEe+FdEj74Y/UZOZwjCkVzFDX/Cm+6wS9d2WISjAXO5wISltY3swff0kavwywKrezcRATdHh7lJKu2l+kWa9hf1gAIyJHIf/0qBOIT/TqfVfpKWZ3/VIY4/+OnTIWdUhHGFIliDOduxMPgMzYfp49wU6acIwl67I3FBT9j/SGG6Zsk15Gb9d0nzJvzc7gvwGyba7uPZ807/nYFP4wBXWc14maAbe3sgpL8sCrr6pJby3TNdH97RQpAayIPF9Y2AA5x/MbjVmRQTi93WR5Y5Ov0jdcxFMLgSqKhY93g3CUROiM7HV34vlcYCJUxLiUKCeG7pTIDL6+n660S4Ky933KH2Gf6yoGxVdHMRB58y2aneqdCKoIO0ReqBp8Su6jspF2XcRmYp6hkRMCfo5Msc/lluglVESoTf28wBKU=
           on:
