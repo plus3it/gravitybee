@@ -45,6 +45,11 @@ jobs:
           newver=$(bumpversion --dry-run --list patch | grep new_version= | sed -r s,"^.*=",,)
           echo "NEW_VERSION=${newver}" >> $GITHUB_ENV
           echo "New version will be ${newver}"
+          author_email=$(grep -E '^author_email = ' setup.cfg | sed 's/^.*= //')
+          author_name=$(grep '^author = ' setup.cfg | sed 's/^.*= //')
+          echo "Configure Git identity ${author_name} ${author_email}"
+          git config --global user.email "${author_email}"
+          git config --global user.name "${author_name}"
           bumpversion patch
       - name: Create Pull Request
         id: cpr
